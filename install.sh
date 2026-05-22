@@ -8,9 +8,11 @@ BIN_DIR="${1:-/usr/local/bin}"
 MAN_DIR="${2:-/usr/local/share/man/man1}"
 
 # check dependencies
-for dep in rg sed; do
+for dep in fd rg sed; do
     if ! command -v "$dep" &>/dev/null; then
         echo "Error: '$dep' is required but not found in PATH." >&2
+        [[ "$dep" == "fd" ]]  && echo "  Install via: brew install fd          (macOS)" >&2
+        [[ "$dep" == "fd" ]]  && echo "               apt install fd-find      (Debian/Ubuntu)" >&2
         [[ "$dep" == "rg" ]] && echo "  Install via: brew install ripgrep  (macOS)" >&2
         [[ "$dep" == "rg" ]] && echo "               apt install ripgrep  (Debian/Ubuntu)" >&2
         exit 1

@@ -1,6 +1,6 @@
 # far
 
-**Find and replace across files** -- a minimal CLI tool combining [`rg`](https://github.com/BurntSushi/ripgrep) and `sed` for fast, targeted in-place substitution.
+**Find and replace across files** -- a minimal CLI tool combining [`fd`](https://github.com/sharkdp/fd), [`rg`](https://github.com/BurntSushi/ripgrep), and `sed` for fast, targeted in-place substitution.
 
 ```bash
 far '*.cpp' 'OldClass' 'NewClass'
@@ -11,8 +11,9 @@ far -y -b '*.txt' 'foo' 'bar'      # skip prompt, write backups
 
 ## Why
 
+`fd` is the modern replacement for `find` -- faster, with saner glob syntax.
 `rg` is the fastest way to find files containing a string. `sed` is the
-standard tool for in-place substitution. `far` wires them together with
+standard tool for in-place substitution. `far` wires all three together with
 a confirmation step, dry-run mode, and optional backups so you don't
 shoot yourself in the foot.
 
@@ -20,24 +21,25 @@ shoot yourself in the foot.
 
 | Tool | Purpose |
 |------|---------|
-| [`rg`](https://github.com/BurntSushi/ripgrep) | Fast parallel file search |
+| [`fd`](https://github.com/sharkdp/fd) | Fast filename glob matching |
+| [`rg`](https://github.com/BurntSushi/ripgrep) | Fast parallel file content search |
 | `sed` | In-place substitution |
 | `bash` | Runtime |
 
-`sed` and `bash` are standard on all POSIX systems. Install `rg` via your package manager:
+`sed` and `bash` are standard on all POSIX systems. Install `fd` and `rg` via your package manager:
 
 ```bash
 # macOS
-brew install ripgrep
+brew install fd ripgrep
 
 # Debian / Ubuntu
-apt install ripgrep
+apt install fd-find ripgrep
 
 # Arch
-pacman -S ripgrep
+pacman -S fd ripgrep
 
 # Cargo
-cargo install ripgrep
+cargo install fd-find ripgrep
 ```
 
 ## Installation
@@ -55,7 +57,7 @@ sudo ./install.sh /usr/local/bin /usr/local/share/man/man1
 ```
 
 The installer will:
-- Check that `rg` is present
+- Check that `fd` and `rg` are present
 - Copy `far` to the bin directory
 - Install the man page
 - Update the man database
@@ -128,6 +130,7 @@ far -y '*.md' 'v1\.0\.0' 'v1.1.0' ./docs
 
 ## Caveats
 
+- `fd` is used for filename glob matching; `rg` is used for content search. Both must be in `PATH`.
 - `find` and `replace` are passed directly to `sed`. Strings containing `/` or `&` must be escaped.
 - Without `-b` there is no undo. Use `-n` first when in doubt.
 - `rg` respects `.gitignore` by default, so files excluded from version control are skipped.

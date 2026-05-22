@@ -61,8 +61,8 @@ FIND="$2"
 REPLACE="$3"
 ROOT="${4:-.}"
 
-# find matching files
-MATCHES=$(rg -l "$FIND" --glob "$GLOB" "$ROOT" 2>/dev/null || true)
+# fd matches by filename glob, rg filters to those containing FIND
+MATCHES=$(fd -g "$GLOB" "$ROOT" --type f | xargs rg -l "$FIND" 2>/dev/null || true)
 
 if [[ -z "$MATCHES" ]]; then
     echo "No files found matching glob '$GLOB' containing '$FIND' under '$ROOT'"
