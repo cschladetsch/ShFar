@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+usage() {
+    cat <<EOF
+Usage: far [OPTIONS] <glob> <find> <replace> [root]
+
+Find and replace text across files matching a filename glob.
+
+Arguments:
+  glob      Filename glob pattern (e.g. '*.cpp')
+  find      Text or regex to search for
+  replace   Replacement text
+  root      Directory to search in (default: current directory)
+
+Options:
+  -y        Skip confirmation prompt
+  -n        Dry run -- show matching files only, make no changes
+  -b        Create .bak backups before modifying (default: no backups)
+  -h        Show this help message
+
+Examples:
+  far '*.cpp' 'OldClass' 'NewClass'
+  far '*.cpp' 'OldClass' 'NewClass' ./src
+  far -y '*.txt' 'foo' 'bar'
+  far -n '*.h' 'TODO' 'FIXME'
+  far -b '*.cpp' 'OldClass' 'NewClass'
+
+Exit codes:
+  0  Success
+  1  Bad arguments
+  2  No matching files found
+  3  User aborted
+EOF
+    exit "${1:-0}"
+}
+
+AUTO_YES=0
+DRY_RUN=0
+BACKUP=0
+
+while getopts "ynbh" opt; do
+    case $opt in
+        y) AUTO_YES=1 ;;
+        n) DRY_RUN=1 ;;
+        b) BACKUP=1 ;;
+        h) usage 0 ;;
+        *) usage 1 ;;
+    esac
+done
+shift $((OPTIND - 1))
+
+if [[ $# -lt 3 ]]; then
+    echo "Error: missing required arguments" >&2
+    usage 1
+fi
+
+GLOB="$1"
+FIND="$2"
+REPLACE="$3"
+ROOT="${4:-.}"
+
+# find matching files
+MATCHES=$(rg -l "$FIND" --glob "$GLOB" "$ROOT" 2>/dev/null || true)
+
+if [[ -z "$MATCHES" ]]; then
+    echo "No files found matching glob '$GLOB' containing '$FIND' under '$ROOT'"
+    exit 2
+fi
+
+echo "Files to be modified:"
+echo "$MATCHES" | sed 's/^/  /'
+echo
+
+if [[ $DRY_RUN -eq 1 ]]; then
+    echo "Dry run -- no changes made."
+    exit 0
+fi
+
+if [[ $AUTO_YES -eq 0 ]]; then
+    read -rp "Replace '$FIND' with '$REPLACE'? [y/N] " confirm
+    [[ "$confirm" =~ ^[Yy]$ ]] || exit 3
+fi
+
+if [[ $BACKUP -eq 1 ]]; then
+    echo "$MATCHES" | xargs sed -i.bak "s/$FIND/$REPLACE/g"
+    echo "Done. Backups written as *.bak"
+else
+    echo "$MATCHES" | xargs sed -i "s/$FIND/$REPLACE/g"
+    echo "Done."
+fi

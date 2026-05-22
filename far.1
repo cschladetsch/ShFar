@@ -1,0 +1,133 @@
+.TH FAR 1 "2026-05-22" "1.0.0" "User Commands"
+.SH NAME
+far \- find and replace text across files matching a filename glob
+.SH SYNOPSIS
+.B far
+[\fIOPTIONS\fR] \fIglob\fR \fIfind\fR \fIreplace\fR [\fIroot\fR]
+.SH DESCRIPTION
+.B far
+searches recursively under a root directory for files whose names match a
+given glob pattern and whose contents contain a search term, then performs
+an in-place substitution replacing all occurrences of the search term with
+the replacement string.
+.PP
+.B far
+uses
+.BR rg (1)
+to locate matching files (fast, parallel, gitignore-aware) and
+.BR sed (1)
+to perform the substitution.
+.SH ARGUMENTS
+.TP
+.B glob
+A filename glob pattern used to restrict which files are searched.
+Examples: \fI*.cpp\fR, \fI*.{h,cpp}\fR, \fIMakefile\fR.
+.TP
+.B find
+The text or basic regular expression to search for within each file.
+.TP
+.B replace
+The replacement string. Backreferences are not supported.
+.TP
+.B root
+The directory to search under. Defaults to the current directory (\fI.\fR).
+.SH OPTIONS
+.TP
+.B \-y
+Skip the confirmation prompt and apply changes immediately.
+.TP
+.B \-n
+Dry run. Print the list of files that would be modified but make no changes.
+.TP
+.B \-b
+Write a backup of each modified file with a \fI.bak\fR suffix before applying changes.
+.TP
+.B \-h
+Print a help message and exit.
+.SH EXIT STATUS
+.TP
+.B 0
+Success.
+.TP
+.B 1
+Invalid arguments.
+.TP
+.B 2
+No files matched the given glob and search term.
+.TP
+.B 3
+User aborted at the confirmation prompt.
+.SH EXAMPLES
+Replace all occurrences of \fIOldClass\fR with \fINewClass\fR in C++ source files
+under the current directory:
+.PP
+.RS
+.nf
+far '*.cpp' 'OldClass' 'NewClass'
+.fi
+.RE
+.PP
+Same, but restricted to the \fI./src\fR subtree:
+.PP
+.RS
+.nf
+far '*.cpp' 'OldClass' 'NewClass' ./src
+.fi
+.RE
+.PP
+Skip the confirmation prompt:
+.PP
+.RS
+.nf
+far -y '*.txt' 'foo' 'bar'
+.fi
+.RE
+.PP
+Dry run -- show affected files without modifying them:
+.PP
+.RS
+.nf
+far -n '*.h' 'TODO' 'FIXME'
+.fi
+.RE
+.PP
+Replace with backups:
+.PP
+.RS
+.nf
+far -b '*.cpp' 'OldClass' 'NewClass'
+.fi
+.RE
+.SH DEPENDENCIES
+.TP
+.BR rg (1)
+ripgrep, used for fast parallel file content search.
+Available at https://github.com/BurntSushi/ripgrep or via your package manager.
+.TP
+.BR sed (1)
+Used for in-place substitution. Standard on all POSIX systems.
+.SH CAVEATS
+The
+.I find
+and
+.I replace
+arguments are passed directly to
+.BR sed (1)
+as a substitution expression. Strings containing
+.B /
+or
+.B &
+must be escaped. Complex regex features (lookaheads, backreferences) are not supported.
+.PP
+Without
+.B \-b
+there is no undo. Use
+.B \-n
+to preview before committing.
+.SH AUTHOR
+Written by Christian Schladetsch.
+.SH SEE ALSO
+.BR rg (1),
+.BR fd (1),
+.BR sed (1),
+.BR find (1)
