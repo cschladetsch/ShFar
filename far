@@ -2,26 +2,31 @@
 
 set -euo pipefail
 
+VERSION="1.0.0"
+
 usage() {
     cat <<USAGE
-Usage: far [OPTIONS] <root> <glob> <find> <replace>
+Usage: far [OPTIONS] <root> [glob] <find> [replace]
 
 Find and replace text across files matching a filename glob.
 
 Arguments:
   root      Directory to search in (use . for current directory)
-  glob      Filename glob pattern (e.g. '*.cpp')
+  glob      Filename glob pattern (default: '*')
   find      Text or regex to search for
-  replace   Replacement text
+  replace   Replacement text (omit to list matching files only)
 
 Options:
   -y        Skip confirmation prompt
   -n        Dry run -- show matching files only, make no changes
   -b        Create .bak backups before modifying (default: no backups)
+  -v        Show version and exit
   -h        Show this help message
 
 Examples:
-  far . '*.cpp' 'OldClass' 'NewClass'
+  far . 'Foo'                            # list all files containing 'Foo'
+  far . '*.cpp' 'Foo'                    # list .cpp files containing 'Foo'
+  far . '*.cpp' 'OldClass' 'NewClass'    # find and replace
   far ./src '*.cpp' 'OldClass' 'NewClass'
   far -y . '*.txt' 'foo' 'bar'
   far -n . '*.h' 'TODO' 'FIXME'
@@ -40,30 +45,54 @@ AUTO_YES=0
 DRY_RUN=0
 BACKUP=0
 
-while getopts "ynbh" opt; do
+while getopts "ynbvh" opt; do
     case $opt in
         y) AUTO_YES=1 ;;
         n) DRY_RUN=1 ;;
         b) BACKUP=1 ;;
+        v) echo "far $VERSION"; exit 0 ;;
         h) usage 0 ;;
         *) usage 1 ;;
     esac
 done
 shift $((OPTIND - 1))
 
-if [[ $# -lt 4 ]]; then
+if [[ $# -lt 2 ]]; then
     echo "Error: missing required arguments" >&2
     usage 1
 fi
 
 ROOT="$1"
-GLOB="$2"
-FIND="$3"
-REPLACE="$4"
 
 if [[ ! -d "$ROOT" ]]; then
     echo "Error: '$ROOT' is not a directory" >&2
     exit 1
+fi
+
+# determine glob, find, replace based on arg count
+# far <root> <find>
+# far <root> <glob> <find>
+# far <root> <glob> <find> <replace>
+if [[ $# -eq 2 ]]; then
+    GLOB='*'
+    FIND="$2"
+    REPLACE=""
+elif [[ $# -eq 3 ]]; then
+    # ambiguous: is arg2 a glob or a find term?
+    # treat as glob if it contains a wildcard or dot, else as find
+    if [[ "$2" == *'*'* || "$2" == *'.'* ]]; then
+        GLOB="$2"
+        FIND="$3"
+        REPLACE=""
+    else
+        GLOB='*'
+        FIND="$2"
+        REPLACE="$3"
+    fi
+else
+    GLOB="$2"
+    FIND="$3"
+    REPLACE="$4"
 fi
 
 # fd matches by filename glob, rg filters to those containing FIND
@@ -74,14 +103,17 @@ if [[ -z "$MATCHES" ]]; then
     exit 2
 fi
 
+# search-only mode
+if [[ -z "$REPLACE" || $DRY_RUN -eq 1 ]]; then
+    echo "Files containing '$FIND':"
+    echo "$MATCHES" | sed 's/^/  /'
+    [[ $DRY_RUN -eq 1 ]] && echo "Dry run -- no changes made."
+    exit 0
+fi
+
 echo "Files to be modified:"
 echo "$MATCHES" | sed 's/^/  /'
 echo
-
-if [[ $DRY_RUN -eq 1 ]]; then
-    echo "Dry run -- no changes made."
-    exit 0
-fi
 
 if [[ $AUTO_YES -eq 0 ]]; then
     read -rp "Replace '$FIND' with '$REPLACE'? [y/N] " confirm
