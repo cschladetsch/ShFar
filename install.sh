@@ -7,18 +7,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BIN_DIR="${1:-/usr/local/bin}"
 MAN_DIR="${2:-/usr/local/share/man/man1}"
 
-# check dependencies
-for dep in fd rg sed; do
-    if ! command -v "$dep" &>/dev/null; then
-        echo "Error: '$dep' is required but not found in PATH." >&2
-        [[ "$dep" == "fd" ]]  && echo "  Install via: brew install fd          (macOS)" >&2
-        [[ "$dep" == "fd" ]]  && echo "               apt install fd-find      (Debian/Ubuntu)" >&2
-        [[ "$dep" == "rg" ]] && echo "  Install via: brew install ripgrep  (macOS)" >&2
-        [[ "$dep" == "rg" ]] && echo "               apt install ripgrep  (Debian/Ubuntu)" >&2
-        exit 1
-    fi
-done
-
 # install binary
 if [[ ! -d "$BIN_DIR" ]]; then
     echo "Creating $BIN_DIR ..."
@@ -48,6 +36,13 @@ echo
 echo "Installed successfully."
 echo "  Run:      far --help"
 echo "  Man page: man far"
+
+# warn about deps if not found -- advisory only, not fatal
+for dep in fd rg; do
+    if ! command -v "$dep" &>/dev/null; then
+        echo "Warning: '$dep' not found in PATH -- far requires it at runtime."
+    fi
+done
 
 # warn if BIN_DIR not in PATH
 if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then

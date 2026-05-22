@@ -3,8 +3,8 @@
 **Find and replace across files** -- a minimal CLI tool combining [`fd`](https://github.com/sharkdp/fd), [`rg`](https://github.com/BurntSushi/ripgrep), and `sed` for fast, targeted in-place substitution.
 
 ```bash
-far '*.cpp' 'OldClass' 'NewClass'
-far '*.cpp' 'OldClass' 'NewClass' ./src
+far . '*.cpp' 'OldClass' 'NewClass'
+far . '*.cpp' 'OldClass' 'NewClass' ./src
 far -n '*.h' 'TODO' 'FIXME'        # dry run
 far -y -b '*.txt' 'foo' 'bar'      # skip prompt, write backups
 ```
@@ -66,17 +66,17 @@ The installer will:
 ## Usage
 
 ```
-far [OPTIONS] <glob> <find> <replace> [root]
+far [OPTIONS] <root> <glob> <find> <replace>
 ```
 
 ### Arguments
 
 | Argument | Description |
 |----------|-------------|
+| `root` | Directory to search under (use `.` for current directory) |
 | `glob` | Filename glob pattern, e.g. `*.cpp` |
 | `find` | Text or regex to search for |
 | `replace` | Replacement string |
-| `root` | Directory to search under (default: `.`) |
 
 ### Options
 
@@ -101,61 +101,61 @@ far [OPTIONS] <glob> <find> <replace> [root]
 **Rename a class across all C++ source files:**
 
 ```bash
-far '*.cpp' 'OldClass' 'NewClass'
+far . '*.cpp' 'OldClass' 'NewClass'
 ```
 
 **Restrict to a subdirectory:**
 
 ```bash
-far '*.cpp' 'OldClass' 'NewClass' ./src
+far . '*.cpp' 'OldClass' 'NewClass' ./src
 ```
 
 **Preview without modifying anything:**
 
 ```bash
-far -n '*.h' 'OldClass' 'NewClass'
+far -n . '*.h' 'OldClass' 'NewClass'
 ```
 
 **Apply immediately with no prompt, keeping backups:**
 
 ```bash
-far -y -b '*.cpp' 'OldClass' 'NewClass'
+far -y -b . '*.cpp' 'OldClass' 'NewClass'
 ```
 
 **Bump a version string across all Markdown docs:**
 
 ```bash
-far -y '*.md' 'v1\.0\.0' 'v1.1.0' ./docs
+far -y ./docs '*.md' 'v1.0.0' 'v1.1.0'
 ```
 
 **Replace a deprecated API call across all headers and sources:**
 
 ```bash
-far '*.{h,cpp}' 'GetValue()' 'getValue()'
+far . '*.{h,cpp}' 'GetValue()' 'getValue()'
 ```
 
 **Fix a misspelled identifier across Python files:**
 
 ```bash
-far '*.py' 'recieve' 'receive'
+far . '*.py' 'recieve' 'receive'
 ```
 
 **Update a changed environment variable name across shell scripts:**
 
 ```bash
-far '*.sh' 'APP_ROOT' 'APP_BASE_DIR' ./scripts
+far ./scripts '*.sh' 'APP_ROOT' 'APP_BASE_DIR'
 ```
 
 **Rename a CMake target across build files:**
 
 ```bash
-far 'CMakeLists.txt' 'mylib_static' 'mylib'
+far . 'CMakeLists.txt' 'mylib_static' 'mylib'
 ```
 
 **Use in a CI pipeline (non-interactive, fails loudly on no match):**
 
 ```bash
-far -y '*.md' 'UNRELEASED' '2.0.0' ./docs
+far -y ./docs '*.md' 'UNRELEASED' '2.0.0'
 ```
 
 ## Caveats

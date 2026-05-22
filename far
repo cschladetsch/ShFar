@@ -3,16 +3,16 @@
 set -euo pipefail
 
 usage() {
-    cat <<EOF
-Usage: far [OPTIONS] <glob> <find> <replace> [root]
+    cat <<USAGE
+Usage: far [OPTIONS] <root> <glob> <find> <replace>
 
 Find and replace text across files matching a filename glob.
 
 Arguments:
+  root      Directory to search in (use . for current directory)
   glob      Filename glob pattern (e.g. '*.cpp')
   find      Text or regex to search for
   replace   Replacement text
-  root      Directory to search in (default: current directory)
 
 Options:
   -y        Skip confirmation prompt
@@ -21,18 +21,18 @@ Options:
   -h        Show this help message
 
 Examples:
-  far '*.cpp' 'OldClass' 'NewClass'
-  far '*.cpp' 'OldClass' 'NewClass' ./src
-  far -y '*.txt' 'foo' 'bar'
-  far -n '*.h' 'TODO' 'FIXME'
-  far -b '*.cpp' 'OldClass' 'NewClass'
+  far . '*.cpp' 'OldClass' 'NewClass'
+  far ./src '*.cpp' 'OldClass' 'NewClass'
+  far -y . '*.txt' 'foo' 'bar'
+  far -n . '*.h' 'TODO' 'FIXME'
+  far -b . '*.cpp' 'OldClass' 'NewClass'
 
 Exit codes:
   0  Success
   1  Bad arguments
   2  No matching files found
   3  User aborted
-EOF
+USAGE
     exit "${1:-0}"
 }
 
@@ -51,15 +51,20 @@ while getopts "ynbh" opt; do
 done
 shift $((OPTIND - 1))
 
-if [[ $# -lt 3 ]]; then
+if [[ $# -lt 4 ]]; then
     echo "Error: missing required arguments" >&2
     usage 1
 fi
 
-GLOB="$1"
-FIND="$2"
-REPLACE="$3"
-ROOT="${4:-.}"
+ROOT="$1"
+GLOB="$2"
+FIND="$3"
+REPLACE="$4"
+
+if [[ ! -d "$ROOT" ]]; then
+    echo "Error: '$ROOT' is not a directory" >&2
+    exit 1
+fi
 
 # fd matches by filename glob, rg filters to those containing FIND
 MATCHES=$(fd -g "$GLOB" "$ROOT" --type f | xargs rg -l "$FIND" 2>/dev/null || true)

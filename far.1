@@ -3,7 +3,7 @@
 far \- find and replace text across files matching a filename glob
 .SH SYNOPSIS
 .B far
-[\fIOPTIONS\fR] \fIglob\fR \fIfind\fR \fIreplace\fR [\fIroot\fR]
+[\fIOPTIONS\fR] \fIroot\fR \fIglob\fR \fIfind\fR \fIreplace\fR
 .SH DESCRIPTION
 .B far
 searches recursively under a root directory for files whose names match a
@@ -13,11 +13,16 @@ the replacement string.
 .PP
 .B far
 uses
+.BR fd (1)
+to locate files by name glob and
 .BR rg (1)
-to locate matching files (fast, parallel, gitignore-aware) and
+to filter by content, then
 .BR sed (1)
 to perform the substitution.
 .SH ARGUMENTS
+.TP
+.B root
+The directory to search under. Use \fI.\fR for the current directory.
 .TP
 .B glob
 A filename glob pattern used to restrict which files are searched.
@@ -28,9 +33,6 @@ The text or basic regular expression to search for within each file.
 .TP
 .B replace
 The replacement string. Backreferences are not supported.
-.TP
-.B root
-The directory to search under. Defaults to the current directory (\fI.\fR).
 .SH OPTIONS
 .TP
 .B \-y
@@ -50,7 +52,7 @@ Print a help message and exit.
 Success.
 .TP
 .B 1
-Invalid arguments.
+Invalid arguments or root is not a directory.
 .TP
 .B 2
 No files matched the given glob and search term.
@@ -63,15 +65,15 @@ under the current directory:
 .PP
 .RS
 .nf
-far '*.cpp' 'OldClass' 'NewClass'
+far . '*.cpp' 'OldClass' 'NewClass'
 .fi
 .RE
 .PP
-Same, but restricted to the \fI./src\fR subtree:
+Restrict to a subdirectory:
 .PP
 .RS
 .nf
-far '*.cpp' 'OldClass' 'NewClass' ./src
+far ./src '*.cpp' 'OldClass' 'NewClass'
 .fi
 .RE
 .PP
@@ -79,7 +81,7 @@ Skip the confirmation prompt:
 .PP
 .RS
 .nf
-far -y '*.txt' 'foo' 'bar'
+far -y . '*.txt' 'foo' 'bar'
 .fi
 .RE
 .PP
@@ -87,7 +89,7 @@ Dry run -- show affected files without modifying them:
 .PP
 .RS
 .nf
-far -n '*.h' 'TODO' 'FIXME'
+far -n . '*.h' 'TODO' 'FIXME'
 .fi
 .RE
 .PP
@@ -95,10 +97,14 @@ Replace with backups:
 .PP
 .RS
 .nf
-far -b '*.cpp' 'OldClass' 'NewClass'
+far -b . '*.cpp' 'OldClass' 'NewClass'
 .fi
 .RE
 .SH DEPENDENCIES
+.TP
+.BR fd (1)
+Used for fast filename glob traversal.
+Available at https://github.com/sharkdp/fd or via your package manager.
 .TP
 .BR rg (1)
 ripgrep, used for fast parallel file content search.
@@ -127,7 +133,7 @@ to preview before committing.
 .SH AUTHOR
 Written by Christian Schladetsch.
 .SH SEE ALSO
-.BR rg (1),
 .BR fd (1),
+.BR rg (1),
 .BR sed (1),
 .BR find (1)
