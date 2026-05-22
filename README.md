@@ -98,34 +98,64 @@ far [OPTIONS] <glob> <find> <replace> [root]
 
 ## Examples
 
-Replace across all C++ source files in the current tree:
+**Rename a class across all C++ source files:**
 
 ```bash
 far '*.cpp' 'OldClass' 'NewClass'
 ```
 
-Restrict to a subdirectory:
+**Restrict to a subdirectory:**
 
 ```bash
 far '*.cpp' 'OldClass' 'NewClass' ./src
 ```
 
-Preview without modifying anything:
+**Preview without modifying anything:**
 
 ```bash
 far -n '*.h' 'OldClass' 'NewClass'
 ```
 
-Apply immediately with no prompt, keeping backups:
+**Apply immediately with no prompt, keeping backups:**
 
 ```bash
 far -y -b '*.cpp' 'OldClass' 'NewClass'
 ```
 
-Use in a CI pipeline (non-interactive, fails loudly):
+**Bump a version string across all Markdown docs:**
 
 ```bash
 far -y '*.md' 'v1\.0\.0' 'v1.1.0' ./docs
+```
+
+**Replace a deprecated API call across all headers and sources:**
+
+```bash
+far '*.{h,cpp}' 'GetValue()' 'getValue()'
+```
+
+**Fix a misspelled identifier across Python files:**
+
+```bash
+far '*.py' 'recieve' 'receive'
+```
+
+**Update a changed environment variable name across shell scripts:**
+
+```bash
+far '*.sh' 'APP_ROOT' 'APP_BASE_DIR' ./scripts
+```
+
+**Rename a CMake target across build files:**
+
+```bash
+far 'CMakeLists.txt' 'mylib_static' 'mylib'
+```
+
+**Use in a CI pipeline (non-interactive, fails loudly on no match):**
+
+```bash
+far -y '*.md' 'UNRELEASED' '2.0.0' ./docs
 ```
 
 ## Caveats
