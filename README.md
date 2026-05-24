@@ -13,7 +13,7 @@ far -y -b '*.txt' 'foo' 'bar'      # skip prompt, write backups
 
 Comes with a small teaching aid: It is basically just a way to combine `fd`, `rg` and `sed`.
 
-![resources/Page1.png](Demo)
+![Demo](resources/Page1.png)
 
 ## Why
 
