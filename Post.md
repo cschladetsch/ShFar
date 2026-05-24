@@ -1,40 +1,54 @@
 # `far`
 
-I’ve been building `far`, a small CLI for safe batch find-and-replace across a tree of files.
+I’ve been building `far`.
+It is the shell version of the old IDE “find and replace across files” thing I kept missing.
+That operation mattered more than people admit.
+You point it at a tree, narrow the files, preview the shape of the change, and then let it go.
+That is a real workflow, not a pile of one-off shell glue.
 
-The motivation is simple:
-
-I always missed the old IDE-style “find and replace across files” operation after moving fully back to the shell.
-
-Yes, you can always stitch something together with `find`, `xargs`, and `sed`.
-But I wanted one remembered command, one workflow, and one tool I could trust.
+You can glue it together with `find`, `xargs`, and `sed`.
+That is not the same thing.
+I wanted one command.
+One command I could type without rebuilding the pipeline in my head every time.
 
 So `far` is deliberately narrow:
-- `fd` finds the candidate files
+- `fd` finds candidate files
 - `rg` filters by content
-- `fsed` performs the replacement
+- [`fsed`](https://github.com/cschladetsch/CppSed) does the replacement
 
-`fsed` is another tool I’ve been building: a faster `sed(1)`-style engine in C++23.
-
-That gave `far` a clean foundation:
-- one replacement engine
-- one set of regex/replacement semantics
-- one command shape that is easy to remember
+`fsed` is not a footnote.
+It is a faster `sed(1)`-style engine in C++23.
+Bundling it means one replacement engine, one regex/rewrite model, one thing to document.
+That also means fewer weird backend differences and fewer “works here, breaks there” surprises.
 
 ```bash
 far [OPTIONS] <root> <glob> <find> <replace>
 ```
 
-Recent work tightened that up a bit:
+That is the whole shape.
+Root first. Then the glob. Then the find string. Then the replacement.
+If you know those four parts, you know the tool.
+
+Recent work:
 - bundled `fsed` instead of relying on system `sed`
-- improved regex/backreference-friendly replacements
-- added a local training playground with a demo folder so the workflow can be learned before it gets used on a real repo
+- improved capture-group and backreference-friendly replacements
+- added a local training playground and demo folder so the workflow can be learned before it hits a real repo
+- kept the command shape simple enough that it is actually worth memorizing
+- made the playground look like a compact single-screen dashboard instead of a bloated demo page
+- kept the repo small enough that the toolchain is still understandable
 
 The goal is straightforward:
 make multi-file refactors fast enough to use, safe enough to trust, and simple enough to remember.
+That is the point.
+Not “clever shell incantation.”
+Not “cargo cult one-liner.”
+Just a usable command for the thing people already know they want.
 
-So [`fsed`](https://github.com/cschladetsch/CppSed) is the engine.
-`far` is the workflow wrapped around it.
+In practice, `far` is the workflow and `fsed` is the engine underneath it.
+That’s the whole thing.
+`far` gets you to the right files.
+`fsed` makes the edit path fast enough that you do not hate using it.
+The playground exists because if people have to learn the shape once, they should not have to guess at it again.
 
 Images to attach:
 
@@ -44,4 +58,4 @@ Optional alt text:
 
 - `far` playground: compact single-screen dashboard for teaching the command shape
 
-Repo: <PRIVATE_URL>
+Repo: https://github.com/cschladetsch/ShFar
