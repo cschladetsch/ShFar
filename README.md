@@ -11,7 +11,7 @@ far -y -b '*.txt' 'foo' 'bar'      # skip prompt, write backups
 
 ## Demo
 
-Comes with a small teaching aid: It is basically just a way to combine `fd`, `rg` and `sed`.
+Comes with a small teaching aid: it is basically just a way to combine `fd`, `rg`, and `fsed`.
 
 ![Demo](resources/Page1.png)
 

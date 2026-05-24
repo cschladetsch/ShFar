@@ -148,6 +148,12 @@ SEARCH_PATTERN=$(normalize_sed_fragment "$FIND")
 SAFE_REPLACE=$(escape_sed_replacement "$(normalize_sed_fragment "$REPLACE")")
 FASTSED_BIN="$(find_fastsed || true)"
 
+if [[ -z "$FASTSED_BIN" ]]; then
+    echo "Error: bundled fastsed (fsed) is required but was not found." >&2
+    echo "Run ./install.sh or set FASTSED_BIN to a valid fastsed executable." >&2
+    exit 1
+fi
+
 mapfile -d '' FILES < <(fd -0 -g "$GLOB" "$ROOT" --type f)
 MATCHES=()
 
@@ -180,17 +186,9 @@ if [[ $AUTO_YES -eq 0 ]]; then
 fi
 
 if [[ $BACKUP -eq 1 ]]; then
-    if [[ -n "$FASTSED_BIN" ]]; then
-        printf '%s\0' "${MATCHES[@]}" | xargs -0 "$FASTSED_BIN" -E --inplace=.bak "s|$SEARCH_PATTERN|$SAFE_REPLACE|g" >/dev/null
-    else
-        printf '%s\0' "${MATCHES[@]}" | xargs -0 sed -E -i.bak "s|$SEARCH_PATTERN|$SAFE_REPLACE|g"
-    fi
+    printf '%s\0' "${MATCHES[@]}" | xargs -0 "$FASTSED_BIN" -E --inplace=.bak "s|$SEARCH_PATTERN|$SAFE_REPLACE|g" >/dev/null
     echo "Done. Backups written as *.bak"
 else
-    if [[ -n "$FASTSED_BIN" ]]; then
-        printf '%s\0' "${MATCHES[@]}" | xargs -0 "$FASTSED_BIN" -E --inplace=$'\x01' "s|$SEARCH_PATTERN|$SAFE_REPLACE|g" >/dev/null
-    else
-        printf '%s\0' "${MATCHES[@]}" | xargs -0 sed -E -i "s|$SEARCH_PATTERN|$SAFE_REPLACE|g"
-    fi
+    printf '%s\0' "${MATCHES[@]}" | xargs -0 "$FASTSED_BIN" -E --inplace=$'\x01' "s|$SEARCH_PATTERN|$SAFE_REPLACE|g" >/dev/null
     echo "Done."
 fi
