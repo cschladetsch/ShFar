@@ -1,920 +1,185 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>far Playground</title>
-  <style>
-    :root {
-      --bg: #f4efe4;
-      --paper: #fffaf1;
-      --panel: rgba(255, 250, 241, 0.88);
-      --ink: #1f1f1a;
-      --muted: #686250;
-      --accent: #b3472b;
-      --accent-strong: #8b2d14;
-      --line: rgba(46, 37, 20, 0.14);
-      --shadow: 0 18px 44px rgba(73, 48, 19, 0.12);
-      --mono: "Iosevka", "SFMono-Regular", "Cascadia Code", monospace;
-      --sans: "Avenir Next", "Segoe UI", sans-serif;
-      --serif: "Iowan Old Style", "Palatino Linotype", serif;
-    }
-
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      color: var(--ink);
-      font-family: var(--sans);
-      background:
-        radial-gradient(circle at top left, rgba(179, 71, 43, 0.18), transparent 32%),
-        radial-gradient(circle at right, rgba(66, 94, 72, 0.14), transparent 28%),
-        linear-gradient(180deg, #f7f2e8 0%, #efe7d8 100%);
-    }
-
-    .shell {
-      max-width: 1240px;
-      margin: 0 auto;
-      padding: 24px 20px 36px;
-    }
-
-    .topbar {
-      display: grid;
-      grid-template-columns: 1.05fr 0.9fr 1.1fr;
-      gap: 18px;
-      align-items: stretch;
-      margin-bottom: 18px;
-    }
-
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-    }
-
-    .hero-main {
-      padding: 22px 24px 20px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero-main::after {
-      content: "";
-      position: absolute;
-      inset: auto -10% -36% auto;
-      width: 280px;
-      height: 280px;
-      border-radius: 50%;
-      background: rgba(179, 71, 43, 0.08);
-      filter: blur(6px);
-    }
-
-    h1 {
-      margin: 0 0 8px;
-      font: 700 40px/0.98 var(--serif);
-      letter-spacing: -0.03em;
-    }
-
-    .hero-copy {
-      max-width: 58ch;
-      margin: 0 0 14px;
-      color: var(--muted);
-      font-size: 16px;
-      line-height: 1.42;
-    }
-
-    .hero-points {
-      display: grid;
-      gap: 6px;
-      margin: 0;
-      padding: 0;
-      list-style: none;
-      color: var(--ink);
-      font-size: 14px;
-    }
-
-    .hero-points li::before {
-      content: ">";
-      color: var(--accent);
-      margin-right: 10px;
-      font-family: var(--mono);
-    }
-
-    .hero-side {
-      padding: 18px;
-      display: grid;
-      gap: 10px;
-      align-content: start;
-    }
-
-    .callout {
-      padding: 12px 14px;
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.5);
-    }
-
-    .callout strong {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--accent-strong);
-    }
-
-    .panel {
-      padding: 18px;
-    }
-
-    .panel h2 {
-      margin: 0 0 6px;
-      font: 700 24px/1.05 var(--serif);
-    }
-
-    .panel p {
-      margin: 0 0 12px;
-      color: var(--muted);
-      line-height: 1.4;
-      font-size: 14px;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px 12px;
-    }
-
-    .field {
-      display: grid;
-      gap: 6px;
-    }
-
-    .field.wide {
-      grid-column: 1 / -1;
-    }
-
-    label {
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    input, select, button, textarea {
-      font: inherit;
-    }
-
-    input, select {
-      width: 100%;
-      padding: 11px 12px;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.72);
-      color: var(--ink);
-    }
-
-    input:focus, select:focus {
-      outline: 2px solid rgba(179, 71, 43, 0.2);
-      border-color: rgba(179, 71, 43, 0.4);
-    }
-
-    .toggles {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin: 4px 0 14px;
-    }
-
-    .toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.55);
-      font-size: 13px;
-      color: var(--ink);
-    }
-
-    .toggle input {
-      width: auto;
-      margin: 0;
-    }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .button {
-      border: 0;
-      border-radius: 999px;
-      padding: 11px 16px;
-      cursor: pointer;
-      transition: transform 120ms ease, background 120ms ease;
-    }
-
-    .button:hover { transform: translateY(-1px); }
-
-    .button.primary {
-      background: var(--accent);
-      color: #fff9f2;
-    }
-
-    .button.secondary {
-      background: rgba(31, 31, 26, 0.08);
-      color: var(--ink);
-    }
-
-    .button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .hint {
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    .command {
-      margin: 0;
-      padding: 14px;
-      border-radius: 18px;
-      background: #1d1b16;
-      color: #f6f1e7;
-      font: 500 14px/1.42 var(--mono);
-      overflow-x: auto;
-      white-space: pre-wrap;
-    }
-
-    .status {
-      min-height: 20px;
-      margin-top: 12px;
-      font-size: 14px;
-      color: var(--muted);
-    }
-
-    .status.error { color: #992f16; }
-    .status.good { color: #2f6840; }
-
-    .results {
-      display: grid;
-      gap: 14px;
-    }
-
-    .summary {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .stat {
-      padding: 12px 14px;
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.52);
-    }
-
-    .stat strong {
-      display: block;
-      font: 700 26px/1 var(--serif);
-      margin-bottom: 4px;
-    }
-
-    .stat span {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .columns {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-    }
-
-    .list-block, .diff-block {
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.48);
-      overflow: hidden;
-    }
-
-    .block-head {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--line);
-      font-weight: 700;
-    }
-
-    ul.file-list {
-      list-style: none;
-      margin: 0;
-      padding: 10px 14px 14px;
-      display: grid;
-      gap: 6px;
-      max-height: 320px;
-      overflow: auto;
-      font-family: var(--mono);
-      font-size: 13px;
-    }
-
-    .diffs {
-      padding: 14px;
-      display: grid;
-      gap: 12px;
-      max-height: 560px;
-      overflow: auto;
-    }
-
-    .diff-card {
-      border-radius: 14px;
-      background: #191713;
-      color: #f8f2e8;
-      overflow: hidden;
-    }
-
-    .diff-card header {
-      padding: 12px 14px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      font-family: var(--mono);
-      font-size: 13px;
-      background: rgba(255, 255, 255, 0.04);
-    }
-
-    .diff-card pre {
-      margin: 0;
-      padding: 14px;
-      font: 500 11px/1.42 var(--mono);
-      overflow-x: auto;
-      white-space: pre-wrap;
-    }
-
-    .mini-note {
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.4;
-    }
-
-    @media (min-width: 2800px) and (min-height: 1300px) {
-      body {
-        overflow: hidden;
-      }
-
-      .shell {
-        max-width: none;
-        width: 100%;
-        height: 100vh;
-        padding: 18px 24px;
-        display: grid;
-        grid-template-columns: 1.1fr 1.05fr 1.45fr;
-        grid-template-rows: auto 1fr;
-        gap: 18px;
-        align-content: start;
-      }
-
-      .topbar {
-        grid-column: 1 / -1;
-        margin-bottom: 0;
-        gap: 18px;
-      }
-
-      .results,
-      .columns,
-      .list-block,
-      .diff-block {
-        min-height: 0;
-      }
-
-      .columns {
-        grid-template-columns: 1fr;
-      }
-
-      .list-block,
-      .diff-block {
-        display: grid;
-        grid-template-rows: auto 1fr;
-      }
-
-      .diffs,
-      ul.file-list {
-        max-height: none;
-        min-height: 0;
-      }
-
-      .hero-main {
-        padding: 22px 24px 20px;
-      }
-
-      .hero-side {
-        padding: 18px;
-        gap: 10px;
-      }
-
-      .callout {
-        padding: 12px 14px;
-      }
-
-      h1 {
-        font-size: 42px;
-        margin-bottom: 8px;
-      }
-
-      .hero-copy {
-        margin-bottom: 14px;
-        font-size: 16px;
-        line-height: 1.4;
-      }
-
-      .hero-points {
-        gap: 6px;
-        font-size: 14px;
-      }
-
-      .panel {
-        padding: 18px;
-      }
-
-      .panel h2 {
-        font-size: 24px;
-        margin-bottom: 6px;
-      }
-
-      .panel p {
-        margin-bottom: 12px;
-        font-size: 14px;
-        line-height: 1.4;
-      }
-
-      .form-grid {
-        gap: 10px 12px;
-      }
-
-      .field {
-        gap: 6px;
-      }
-
-      input,
-      select {
-        padding: 11px 12px;
-      }
-
-      .toggles {
-        gap: 8px;
-        margin: 4px 0 14px;
-      }
-
-      .toggle {
-        padding: 8px 12px;
-        font-size: 13px;
-      }
-
-      .actions {
-        gap: 10px;
-      }
-
-      .button {
-        padding: 11px 16px;
-      }
-
-      .command {
-        padding: 14px;
-        font-size: 14px;
-      }
-
-      .summary {
-        gap: 10px;
-      }
-
-      .stat {
-        padding: 12px 14px;
-      }
-
-      .stat strong {
-        font-size: 28px;
-      }
-
-      .block-head {
-        padding: 12px 14px;
-      }
-
-      ul.file-list {
-        padding: 10px 14px 14px;
-      }
-
-      .diffs {
-        padding: 14px;
-        gap: 12px;
-      }
-
-      .diff-card pre {
-        font-size: 11px;
-        line-height: 1.42;
-      }
-
-      .mini-note,
-      .hint,
-      .status {
-        font-size: 12px;
-      }
-    }
-
-    @media (max-width: 980px) {
-      .topbar,
-      .columns,
-      .summary {
-        grid-template-columns: 1fr;
-      }
-
-      h1 {
-        font-size: 42px;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Single Screen Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f4f1ea;
+            color: #333;
+            height: 100vh; /* Locks the body to exactly the screen height */
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            overflow: hidden; /* Prevents overall page scrolling */
+        }
+
+        /* Top Header: Keeps instructions ultra-compact */
+        header {
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+        header h2 { font-size: 1.3rem; margin-bottom: 2px; }
+
+        /* Master Container split into Left (Controls) and Right (Results) */
+        .dashboard-container {
+            display: flex;
+            gap: 15px;
+            flex: 1; /* Takes up all remaining vertical space */
+            min-height: 0; /* Critical CSS fix to allow internal scrolling instead of page growth */
+        }
+
+        /* Left Pane: Controls & Presets */
+        .left-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 400px;
+        }
+
+        /* Right Pane: Command & Previews */
+        .right-pane {
+            flex: 1.5;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 0;
+        }
+
+        /* Generic Card Style */
+        .card {
+            background: #ffffff;
+            border: 1px solid #e2ded5;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        /* Makes the preview section independently scrollable if content overflows */
+        .scrollable-content {
+            flex: 1;
+            overflow-y: auto; 
+            background: #ffffff;
+            border: 1px solid #e2ded5;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        /* Compact elements for form fields */
+        .form-group { margin-bottom: 8px; }
+        .form-group label { font-size: 0.75rem; font-weight: bold; color: #b85c38; display: block; }
+        input[type="text"], select { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.85rem; }
+
+        /* Code box styling */
+        .command-box {
+            background: #111;
+            color: #fff;
+            font-family: monospace;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            overflow-x: auto;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 10px;
+        }
+        .stat-box {
+            flex: 1;
+            background: #f9f8f6;
+            border: 1px solid #e2ded5;
+            text-align: center;
+            padding: 8px;
+            border-radius: 6px;
+        }
+    </style>
 </head>
 <body>
-  <div class="shell">
-    <section class="topbar">
-      <div class="hero-main card">
-        <h1>Learn the command.<br>Leave with shell muscle memory.</h1>
-        <p class="hero-copy">
-          This page teaches <code>far</code>, not generic <code>sed</code>. Build the
-          command, preview what it would do on a safe demo folder or your own project,
-          then copy the exact shell command and run it yourself.
-        </p>
-        <ul class="hero-points">
-          <li><code>root</code> comes first</li>
-          <li><code>glob</code> narrows the file set</li>
-          <li><code>find</code> and <code>replace</code> drive the rewrite</li>
-          <li><code>-n</code> previews, <code>-b</code> keeps backups</li>
-        </ul>
-      </div>
-      <aside class="hero-side card">
-        <div class="callout">
-          <strong>Pipeline</strong>
-          <div><code>fd</code> finds filenames, <code>rg</code> filters by content, and <code>far</code> applies the replacement path.</div>
-        </div>
-        <div class="callout">
-          <strong>Default root</strong>
-          <div>The playground starts on the repo’s <code>demo/</code> folder so you can experiment safely.</div>
-        </div>
-        <div class="callout">
-          <strong>Reset demo</strong>
-          <div>After experimenting, reset the demo files with <code>git restore demo/</code>.</div>
-        </div>
-      </aside>
-      <section class="panel card">
-        <h2>Build the command</h2>
-        <p>Pick a preset or edit the fields directly. Preview uses real local files, but the output is intentionally sampled so the command stays the focus.</p>
 
-        <div class="form-grid">
-          <div class="field wide">
-            <label for="preset">Preset</label>
-            <select id="preset"></select>
-          </div>
-          <div class="field wide">
-            <label for="root">Root</label>
-            <input id="root" type="text" spellcheck="false">
-          </div>
-          <div class="field">
-            <label for="glob">Glob</label>
-            <input id="glob" type="text" spellcheck="false">
-          </div>
-          <div class="field">
-            <label for="find">Find</label>
-            <input id="find" type="text" spellcheck="false">
-          </div>
-          <div class="field wide">
-            <label for="replace">Replace</label>
-            <input id="replace" type="text" spellcheck="false">
-          </div>
-        </div>
+    <header>
+        <h2>Learn the command. Leave with shell muscle memory.</h2>
+        <p>Build the command, preview changes, copy to shell. (<code>fd</code> finds, <code>rg</code> filters, <code>far</code> replaces)</p>
+    </header>
 
-        <div class="toggles">
-          <label class="toggle"><input id="dry-run" type="checkbox"> include <code>-n</code></label>
-          <label class="toggle"><input id="auto-yes" type="checkbox"> include <code>-y</code></label>
-          <label class="toggle"><input id="backup" type="checkbox"> include <code>-b</code></label>
-        </div>
-
-        <div class="actions">
-          <button class="button primary" id="preview-button">Preview sample changes</button>
-          <button class="button secondary" id="copy-button">Copy command</button>
-          <span class="hint">Preview first, then take the command back to your shell.</span>
-        </div>
-
-        <div class="status" id="form-status"></div>
-      </section>
-    </section>
-
-    <section class="panel card">
-      <h2>Command to remember</h2>
-      <p>This is the artifact that matters. Use the page until this command shape becomes automatic.</p>
-      <pre class="command" id="command-preview"></pre>
-      <div class="mini-note">
-        Tip: when <code>-n</code> is included, you are practicing the safe preview habit you should use at the shell too.
-      </div>
-      <section style="margin-top: 18px;">
-        <h2>Preview sample</h2>
-        <p>The backend checks your real local files under the chosen root, then returns the full changed-file list plus a capped sample of diffs.</p>
-
-        <div class="results">
-          <div class="summary">
-            <div class="stat"><strong id="matched-count">0</strong><span>files matched the search pattern</span></div>
-            <div class="stat"><strong id="changed-count">0</strong><span>files would actually change</span></div>
-            <div class="stat"><strong id="sample-count">0</strong><span>sample diffs shown</span></div>
-          </div>
-
-          <div class="columns">
-            <div class="list-block">
-              <div class="block-head">Changed files</div>
-              <ul class="file-list" id="changed-files"></ul>
+    <div class="dashboard-container">
+        
+        <div class="left-pane">
+            <div class="card">
+                <div class="form-group">
+                    <label>PRESET</label>
+                    <select><option>Normalize banner comments — Collapse //</option></select>
+                </div>
+                <div class="form-group">
+                    <label>ROOT</label>
+                    <input type="text" value="/home/christian/local/repos/ShFar/demo">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>GLOB</label>
+                        <input type="text" value="*.{cpp,hpp,h}">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>FIND</label>
+                        <input type="text" value="// -- (.*) -+$">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>REPLACE</label>
+                    <input type="text" value="// \1">
+                </div>
+                <div style="font-size: 0.8rem; margin: 5px 0;">
+                    <label><input type="checkbox" checked> Include -N</label> &nbsp;
+                    <label><input type="checkbox"> Include -Y</label> &nbsp;
+                    <label><input type="checkbox" checked> Include -B</label>
+                </div>
+                <button style="width: 100%; padding: 8px; background: #b85c38; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Preview sample changes</button>
             </div>
-            <div class="diff-block">
-              <div class="block-head" id="diff-head">Sampled diffs</div>
-              <div class="diffs" id="sample-diffs"></div>
+
+            <div class="card" style="font-size: 0.8rem;">
+                <strong style="color: #b85c38; display: block; margin-bottom: 4px;">TIPS</strong>
+                • <code>-n</code> previews changes safely.<br>
+                • <code>-b</code> keeps automated backups.<br>
+                • Reset anytime via <code>git restore demo/</code>.
             </div>
-          </div>
         </div>
-        <div class="status" id="preview-status">Load the demo root, then preview a preset.</div>
-      </section>
-    </section>
-  </div>
 
-  <script>
-    const state = {
-      config: null,
-      previewDirty: true,
-    };
+        <div class="right-pane">
+            <div class="card" style="padding: 10px 15px;">
+                <span style="font-size: 0.75rem; font-weight: bold; color: #b85c38;">COMMAND TO REMEMBER</span>
+                <div class="command-box">far -n -b /home/christian/local/repos/ShFar/demo '*.{cpp,hpp,h}' '// -- (.*) -+$' '// \1'</div>
+            </div>
 
-    const FALLBACK_CONFIG = {
-      demo_root: "./demo",
-      max_sample_diffs: 5,
-      presets: [
-        {
-          id: "rename-class",
-          label: "Rename a class",
-          description: "Turn OldClass into NewClass across C++ sources.",
-          glob: "*.cpp",
-          find: "OldClass",
-          replace: "NewClass",
-          dry_run: false,
-          backup: false,
-        },
-        {
-          id: "banner-comments",
-          label: "Normalize banner comments",
-          description: "Collapse // -- Text ----- into // Text.",
-          glob: "*.{cpp,hpp,h}",
-          find: "// -- (.*) -+$",
-          replace: "// \\1",
-          dry_run: false,
-          backup: false,
-        },
-        {
-          id: "fix-typo",
-          label: "Fix a typo",
-          description: "Change recieve to receive in Markdown and shell files.",
-          glob: "*.{md,sh}",
-          find: "recieve",
-          replace: "receive",
-          dry_run: false,
-          backup: false,
-        },
-        {
-          id: "cmake-target",
-          label: "Rename a CMake target",
-          description: "Rename mylib_static to mylib.",
-          glob: "CMakeLists.txt",
-          find: "mylib_static",
-          replace: "mylib",
-          dry_run: false,
-          backup: false,
-        },
-      ],
-    };
+            <div class="stats-row">
+                <div class="stat-box"><strong>4</strong> <small>Matches</small></div>
+                <div class="stat-box"><strong>4</strong> <small>Changes</small></div>
+                <div class="stat-box"><strong>4</strong> <small>Diffs Shown</small></div>
+            </div>
 
-    const presetEl = document.getElementById("preset");
-    const rootEl = document.getElementById("root");
-    const globEl = document.getElementById("glob");
-    const findEl = document.getElementById("find");
-    const replaceEl = document.getElementById("replace");
-    const dryRunEl = document.getElementById("dry-run");
-    const autoYesEl = document.getElementById("auto-yes");
-    const backupEl = document.getElementById("backup");
-    const previewButton = document.getElementById("preview-button");
-    const copyButton = document.getElementById("copy-button");
-    const commandPreview = document.getElementById("command-preview");
-    const formStatus = document.getElementById("form-status");
-    const previewStatus = document.getElementById("preview-status");
-    const matchedCount = document.getElementById("matched-count");
-    const changedCount = document.getElementById("changed-count");
-    const sampleCount = document.getElementById("sample-count");
-    const changedFiles = document.getElementById("changed-files");
-    const sampleDiffs = document.getElementById("sample-diffs");
-    const diffHead = document.getElementById("diff-head");
+            <div class="scrollable-content">
+                <h4 style="font-size: 0.85rem; margin-bottom: 5px;">Changed Files</h4>
+                <ul style="font-family: monospace; font-size: 0.8rem; list-style: none; margin-bottom: 15px;">
+                    <li>include/Parser.hpp</li>
+                    <li>include/Widget.hpp</li>
+                </ul>
 
-    function shellQuote(value) {
-      if (value === "") return "''";
-      return /^[A-Za-z0-9_./:{}+-]+$/.test(value) ? value : `'${value.replace(/'/g, `'\\''`)}'`;
-    }
+                <h4 style="font-size: 0.85rem; margin-bottom: 5px;">Sample Diffs</h4>
+                <pre style="background: #1e1e1e; color: #fff; padding: 10px; border-radius: 4px; font-size: 0.75rem; font-family: monospace;">
+include/Parser.hpp
+--- include/Parser.hpp (before)
++++ include/Parser.hpp (after)
+@@ -1,6 +1,6 @@
+-// -- Core parsing logic ----------
++// Core parsing logic</pre>
+             </div>
+         </div>
 
-    function currentPayload() {
-      return {
-        root: rootEl.value.trim(),
-        glob: globEl.value.trim(),
-        find: findEl.value,
-        replace: replaceEl.value,
-        dry_run: dryRunEl.checked,
-        auto_yes: autoYesEl.checked,
-        backup: backupEl.checked,
-      };
-    }
+     </div>
 
-    function renderCommand() {
-      const payload = currentPayload();
-      const parts = ["far"];
-      if (payload.dry_run) parts.push("-n");
-      if (payload.auto_yes) parts.push("-y");
-      if (payload.backup) parts.push("-b");
-      parts.push(payload.root || "<root>");
-      parts.push(payload.glob || "*");
-      parts.push(payload.find || "<find>");
-      parts.push(payload.replace);
-      commandPreview.textContent = parts.map(shellQuote).join(" ");
-    }
-
-    function markDirty() {
-      state.previewDirty = true;
-      formStatus.textContent = "Inputs changed. Preview again before trusting the sample.";
-      formStatus.className = "status";
-      renderCommand();
-    }
-
-    function fillPreset(presetId) {
-      const preset = state.config.presets.find(item => item.id === presetId);
-      if (!preset) return;
-      globEl.value = preset.glob;
-      findEl.value = preset.find;
-      replaceEl.value = preset.replace;
-      dryRunEl.checked = Boolean(preset.dry_run);
-      autoYesEl.checked = false;
-      backupEl.checked = Boolean(preset.backup);
-      markDirty();
-    }
-
-    function setList(items) {
-      changedFiles.innerHTML = "";
-      if (!items.length) {
-        const li = document.createElement("li");
-        li.textContent = "No files would change.";
-        changedFiles.appendChild(li);
-        return;
-      }
-      for (const item of items) {
-        const li = document.createElement("li");
-        li.textContent = item;
-        changedFiles.appendChild(li);
-      }
-    }
-
-    function setDiffs(diffs, truncated) {
-      sampleDiffs.innerHTML = "";
-      if (!diffs.length) {
-        const empty = document.createElement("div");
-        empty.className = "hint";
-        empty.textContent = "No sampled diffs to show yet.";
-        sampleDiffs.appendChild(empty);
-      } else {
-        for (const entry of diffs) {
-          const card = document.createElement("article");
-          card.className = "diff-card";
-          const header = document.createElement("header");
-          header.textContent = entry.path;
-          const body = document.createElement("pre");
-          body.textContent = entry.diff;
-          card.appendChild(header);
-          card.appendChild(body);
-          sampleDiffs.appendChild(card);
-        }
-      }
-      diffHead.textContent = truncated
-        ? `Sampled diffs (first ${diffs.length}, more files changed)`
-        : "Sampled diffs";
-    }
-
-    function backendHelpMessage(action) {
-      if (window.location.protocol === "file:") {
-        return `Cannot ${action} from a file:// page. Start the backend with "python3 playground_server.py" and open http://127.0.0.1:8765.`;
-      }
-      return `Cannot ${action} because the local backend is unavailable. Start it with "python3 playground_server.py" and reload http://127.0.0.1:8765.`;
-    }
-
-    function renderPresets() {
-      presetEl.innerHTML = "";
-      for (const preset of state.config.presets) {
-        const option = document.createElement("option");
-        option.value = preset.id;
-        option.textContent = `${preset.label} — ${preset.description}`;
-        presetEl.appendChild(option);
-      }
-      rootEl.value = state.config.demo_root;
-      fillPreset(state.config.presets[0].id);
-    }
-
-    async function loadConfig() {
-      try {
-        const response = await fetch("/api/config");
-        if (!response.ok) {
-          throw new Error("Config request failed.");
-        }
-        state.config = await response.json();
-        renderPresets();
-        previewStatus.textContent = "The demo folder is loaded. Preview a preset or change the command.";
-      } catch (error) {
-        state.config = FALLBACK_CONFIG;
-        renderPresets();
-        formStatus.textContent = backendHelpMessage("load live presets");
-        formStatus.className = "status error";
-        previewStatus.textContent = "Presets are available, but preview needs the local backend running.";
-      }
-    }
-
-    async function preview() {
-      previewButton.disabled = true;
-      formStatus.textContent = "Previewing local files…";
-      formStatus.className = "status";
-      previewStatus.textContent = "Checking matches and sampled diffs…";
-      try {
-        const payload = currentPayload();
-        const response = await fetch("/api/preview", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify(payload),
-        });
-        const data = await response.json();
-        if (!response.ok || data.error) {
-          throw new Error(data.error || "Preview failed.");
-        }
-
-        matchedCount.textContent = String(data.matched_files.length);
-        changedCount.textContent = String(data.changed_files.length);
-        sampleCount.textContent = String(data.sample_diffs.length);
-        setList(data.changed_files);
-        setDiffs(data.sample_diffs, data.truncated);
-        commandPreview.textContent = data.command;
-        state.previewDirty = false;
-
-        if (data.changed_files.length === 0) {
-          previewStatus.textContent = "No files would change for this command.";
-        } else if (data.truncated) {
-          previewStatus.textContent = "Preview complete. Sampled diffs are capped so the command stays the focus.";
-        } else {
-          previewStatus.textContent = "Preview complete. This is the command you can run in your shell.";
-        }
-        formStatus.textContent = "Preview complete.";
-        formStatus.className = "status good";
-      } catch (error) {
-        matchedCount.textContent = "0";
-        changedCount.textContent = "0";
-        sampleCount.textContent = "0";
-        setList([]);
-        setDiffs([], false);
-        formStatus.textContent = error instanceof TypeError ? backendHelpMessage("preview changes") : error.message;
-        formStatus.className = "status error";
-        previewStatus.textContent = error instanceof TypeError
-          ? "The page can show presets without the backend, but previews need the local Python server."
-          : "Fix the command inputs, then preview again.";
-      } finally {
-        previewButton.disabled = false;
-      }
-    }
-
-    async function copyCommand() {
-      try {
-        await navigator.clipboard.writeText(commandPreview.textContent);
-        formStatus.textContent = "Command copied.";
-        formStatus.className = "status good";
-      } catch {
-        formStatus.textContent = "Copy failed. Select the command manually.";
-        formStatus.className = "status error";
-      }
-    }
-
-    presetEl.addEventListener("change", () => fillPreset(presetEl.value));
-    [rootEl, globEl, findEl, replaceEl, dryRunEl, autoYesEl, backupEl].forEach(el => {
-      el.addEventListener("input", markDirty);
-      el.addEventListener("change", markDirty);
-    });
-    previewButton.addEventListener("click", preview);
-    copyButton.addEventListener("click", copyCommand);
-
-    loadConfig().then(renderCommand);
-  </script>
 </body>
 </html>
