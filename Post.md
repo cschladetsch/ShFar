@@ -50,12 +50,7 @@ That’s the whole thing.
 `fsed` makes the edit path fast enough that you do not hate using it.
 The playground exists because if people have to learn the shape once, they should not have to guess at it again.
 
-Images to attach:
-
-- Playground screenshot: https://raw.githubusercontent.com/cschladetsch/ShFar/master/resources/Page1.png
-
-Optional alt text:
-
-- `far` playground: compact single-screen dashboard for teaching the command shape
+If I attach one image, it is this:
+https://raw.githubusercontent.com/cschladetsch/ShFar/master/resources/Page1.png
 
 Repo: https://github.com/cschladetsch/ShFar
