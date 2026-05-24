@@ -33,7 +33,15 @@ Recent work tightened that up a bit:
 The goal is straightforward:
 make multi-file refactors fast enough to use, safe enough to trust, and simple enough to remember.
 
-So `fsed` is the engine.
+So [`fsed`](https://github.com/cschladetsch/CppSed) is the engine.
 `far` is the workflow wrapped around it.
+
+Images to attach:
+
+- Playground screenshot: https://raw.githubusercontent.com/cschladetsch/ShFar/master/resources/Page1.png
+
+Optional alt text:
+
+- `far` playground: compact single-screen dashboard for teaching the command shape
 
 Repo: <PRIVATE_URL>
