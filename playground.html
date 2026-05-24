@@ -512,6 +512,53 @@
       previewDirty: true,
     };
 
+    const FALLBACK_CONFIG = {
+      demo_root: "./demo",
+      max_sample_diffs: 5,
+      presets: [
+        {
+          id: "rename-class",
+          label: "Rename a class",
+          description: "Turn OldClass into NewClass across C++ sources.",
+          glob: "*.cpp",
+          find: "OldClass",
+          replace: "NewClass",
+          dry_run: false,
+          backup: false,
+        },
+        {
+          id: "banner-comments",
+          label: "Normalize banner comments",
+          description: "Collapse // -- Text ----- into // Text.",
+          glob: "*.{cpp,hpp,h}",
+          find: "// -- (.*) -+$",
+          replace: "// \\1",
+          dry_run: false,
+          backup: false,
+        },
+        {
+          id: "fix-typo",
+          label: "Fix a typo",
+          description: "Change recieve to receive in Markdown and shell files.",
+          glob: "*.{md,sh}",
+          find: "recieve",
+          replace: "receive",
+          dry_run: false,
+          backup: false,
+        },
+        {
+          id: "cmake-target",
+          label: "Rename a CMake target",
+          description: "Rename mylib_static to mylib.",
+          glob: "CMakeLists.txt",
+          find: "mylib_static",
+          replace: "mylib",
+          dry_run: false,
+          backup: false,
+        },
+      ],
+    };
+
     const presetEl = document.getElementById("preset");
     const rootEl = document.getElementById("root");
     const globEl = document.getElementById("glob");
@@ -621,9 +668,7 @@
         : "Sampled diffs";
     }
 
-    async function loadConfig() {
-      const response = await fetch("/api/config");
-      state.config = await response.json();
+    function renderPresets() {
       presetEl.innerHTML = "";
       for (const preset of state.config.presets) {
         const option = document.createElement("option");
@@ -633,7 +678,24 @@
       }
       rootEl.value = state.config.demo_root;
       fillPreset(state.config.presets[0].id);
-      previewStatus.textContent = "The demo folder is loaded. Preview a preset or change the command.";
+    }
+
+    async function loadConfig() {
+      try {
+        const response = await fetch("/api/config");
+        if (!response.ok) {
+          throw new Error("Config request failed.");
+        }
+        state.config = await response.json();
+        renderPresets();
+        previewStatus.textContent = "The demo folder is loaded. Preview a preset or change the command.";
+      } catch (error) {
+        state.config = FALLBACK_CONFIG;
+        renderPresets();
+        formStatus.textContent = "Loaded fallback presets. Start the Python server for live previews.";
+        formStatus.className = "status error";
+        previewStatus.textContent = "Presets are available, but preview needs the local backend running.";
+      }
     }
 
     async function preview() {
