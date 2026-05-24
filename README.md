@@ -83,6 +83,12 @@ python3 playground_server.py
 
 Then open `http://127.0.0.1:8765`.
 
+Or use the helper:
+
+```bash
+./teach
+```
+
 - It defaults to the repo's `demo/` folder so you can experiment safely.
 - It previews real local files, but only shows sampled diffs so the command
   stays the main artifact.

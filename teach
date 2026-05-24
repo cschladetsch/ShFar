@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HOST="${FAR_PLAYGROUND_HOST:-127.0.0.1}"
+PORT="${FAR_PLAYGROUND_PORT:-8765}"
+URL="http://${HOST}:${PORT}"
+
+cd "$SCRIPT_DIR"
+
+python3 playground_server.py >/tmp/far-playground.log 2>&1 &
+SERVER_PID=$!
+
+cleanup() {
+    if kill -0 "$SERVER_PID" 2>/dev/null; then
+        kill "$SERVER_PID" 2>/dev/null || true
+    fi
+}
+
+trap cleanup EXIT INT TERM
+
+for _ in $(seq 1 40); do
+    if python3 - <<PY
+import socket
+s = socket.socket()
+s.settimeout(0.1)
+try:
+    s.connect(("${HOST}", ${PORT}))
+except OSError:
+    raise SystemExit(1)
+raise SystemExit(0)
+PY
+    then
+        break
+    fi
+    sleep 0.1
+done
+
+if command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$URL" >/dev/null 2>&1 || true
+elif command -v open >/dev/null 2>&1; then
+    open "$URL" >/dev/null 2>&1 || true
+fi
+
+echo "far playground: $URL"
+echo "Press Ctrl-C to stop the local server."
+wait "$SERVER_PID"
