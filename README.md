@@ -11,7 +11,7 @@ far -y -b '*.txt' 'foo' 'bar'      # skip prompt, write backups
 
 ## Demo
 
-Comes with a small teaching aid: it is basically just a way to combine `fd`, `rg`, and `fsed`.
+Comes with a small teaching aid: a compact single-screen dashboard that shows the `far` command shape and keeps the learning flow local.
 
 ![Demo](resources/Page1.png)
 
@@ -76,6 +76,8 @@ The installer will:
 
 The local playground is the recommended way to learn `far` argument order and
 preview a command before you run it manually in your shell.
+
+Start the local server-backed playground:
 
 ```bash
 python3 playground_server.py
