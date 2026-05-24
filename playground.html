@@ -668,6 +668,13 @@
         : "Sampled diffs";
     }
 
+    function backendHelpMessage(action) {
+      if (window.location.protocol === "file:") {
+        return `Cannot ${action} from a file:// page. Start the backend with "python3 playground_server.py" and open http://127.0.0.1:8765.`;
+      }
+      return `Cannot ${action} because the local backend is unavailable. Start it with "python3 playground_server.py" and reload http://127.0.0.1:8765.`;
+    }
+
     function renderPresets() {
       presetEl.innerHTML = "";
       for (const preset of state.config.presets) {
@@ -692,7 +699,7 @@
       } catch (error) {
         state.config = FALLBACK_CONFIG;
         renderPresets();
-        formStatus.textContent = "Loaded fallback presets. Start the Python server for live previews.";
+        formStatus.textContent = backendHelpMessage("load live presets");
         formStatus.className = "status error";
         previewStatus.textContent = "Presets are available, but preview needs the local backend running.";
       }
@@ -738,9 +745,11 @@
         sampleCount.textContent = "0";
         setList([]);
         setDiffs([], false);
-        formStatus.textContent = error.message;
+        formStatus.textContent = error instanceof TypeError ? backendHelpMessage("preview changes") : error.message;
         formStatus.className = "status error";
-        previewStatus.textContent = "Fix the command inputs, then preview again.";
+        previewStatus.textContent = error instanceof TypeError
+          ? "The page can show presets without the backend, but previews need the local Python server."
+          : "Fix the command inputs, then preview again.";
       } finally {
         previewButton.disabled = false;
       }
