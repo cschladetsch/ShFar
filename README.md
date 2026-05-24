@@ -9,6 +9,12 @@ far -n '*.h' 'TODO' 'FIXME'        # dry run
 far -y -b '*.txt' 'foo' 'bar'      # skip prompt, write backups
 ```
 
+## Demo
+
+Comes with a small teaching aid: It is basically just a way to combine `fd`, `rg` and `sed`.
+
+![resources/Page1.png](Demo)
+
 ## Why
 
 `fd` is the modern replacement for `find` -- faster, with saner glob syntax.
