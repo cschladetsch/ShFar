@@ -1,0 +1,3 @@
+[submodule "CppSed"]
+	path = CppSed
+	url = https://github.com/cschladetsch/CppSed.git

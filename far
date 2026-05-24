@@ -31,6 +31,7 @@ Examples:
   far -y . '*.txt' 'foo' 'bar'
   far -n . '*.h' 'TODO' 'FIXME'
   far -b . '*.cpp' 'OldClass' 'NewClass'
+  far . '*.{cpp,h}' '// -- (.*) -+$' '// \1'
 
 Exit codes:
   0  Success
@@ -44,6 +45,7 @@ USAGE
 AUTO_YES=0
 DRY_RUN=0
 BACKUP=0
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 while getopts "ynbvh" opt; do
     case $opt in
@@ -95,10 +97,67 @@ else
     REPLACE="$4"
 fi
 
-# fd matches by filename glob, rg filters to those containing FIND
-MATCHES=$(fd -g "$GLOB" "$ROOT" --type f | xargs rg -l "$FIND" 2>/dev/null || true)
+normalize_sed_fragment() {
+    local fragment="$1"
+    # Accept fully wrapped /.../ input.
+    if [[ "$fragment" == /*/ && ${#fragment} -ge 2 ]]; then
+        printf '%s\n' "${fragment:1:${#fragment}-2}"
+        return
+    fi
+    # Tolerate a leading sed delimiter in user input such as /foo or /\/bar.
+    if [[ "$fragment" == /* ]]; then
+        fragment="${fragment:1}"
+    fi
+    # Escaped slashes were only needed with the old / delimiter.
+    fragment=${fragment//\\\//\/}
+    printf '%s\n' "$fragment"
+}
 
-if [[ -z "$MATCHES" ]]; then
+escape_sed_replacement() {
+    local replacement="$1"
+    replacement=${replacement//&/\\&}
+    replacement=${replacement//|/\\|}
+    printf '%s\n' "$replacement"
+}
+
+find_fastsed() {
+    if [[ -n "${FASTSED_BIN:-}" && -x "${FASTSED_BIN}" ]]; then
+        printf '%s\n' "${FASTSED_BIN}"
+        return
+    fi
+    if [[ -x "${SCRIPT_DIR}/CppSed/Bin/fastsed" ]]; then
+        printf '%s\n' "${SCRIPT_DIR}/CppSed/Bin/fastsed"
+        return
+    fi
+    if [[ -x "${SCRIPT_DIR}/CppSed/.fastsed-build/fastsed" ]]; then
+        printf '%s\n' "${SCRIPT_DIR}/CppSed/.fastsed-build/fastsed"
+        return
+    fi
+    if command -v fsed >/dev/null 2>&1; then
+        command -v fsed
+        return
+    fi
+    if command -v fastsed >/dev/null 2>&1; then
+        command -v fastsed
+        return
+    fi
+    return 1
+}
+
+SEARCH_PATTERN=$(normalize_sed_fragment "$FIND")
+SAFE_REPLACE=$(escape_sed_replacement "$(normalize_sed_fragment "$REPLACE")")
+FASTSED_BIN="$(find_fastsed || true)"
+
+mapfile -d '' FILES < <(fd -0 -g "$GLOB" "$ROOT" --type f)
+MATCHES=()
+
+if [[ ${#FILES[@]} -gt 0 ]]; then
+    while IFS= read -r -d '' match; do
+        MATCHES+=("$match")
+    done < <(printf '%s\0' "${FILES[@]}" | xargs -0 rg -l -0 -- "$SEARCH_PATTERN" 2>/dev/null || true)
+fi
+
+if [[ ${#MATCHES[@]} -eq 0 ]]; then
     echo "No files found matching glob '$GLOB' containing '$FIND' under '$ROOT'"
     exit 2
 fi
@@ -106,13 +165,13 @@ fi
 # search-only mode
 if [[ -z "$REPLACE" || $DRY_RUN -eq 1 ]]; then
     echo "Files containing '$FIND':"
-    echo "$MATCHES" | sed 's/^/  /'
+    printf '  %s\n' "${MATCHES[@]}"
     [[ $DRY_RUN -eq 1 ]] && echo "Dry run -- no changes made."
     exit 0
 fi
 
 echo "Files to be modified:"
-echo "$MATCHES" | sed 's/^/  /'
+printf '  %s\n' "${MATCHES[@]}"
 echo
 
 if [[ $AUTO_YES -eq 0 ]]; then
@@ -121,9 +180,17 @@ if [[ $AUTO_YES -eq 0 ]]; then
 fi
 
 if [[ $BACKUP -eq 1 ]]; then
-    echo "$MATCHES" | xargs sed -i.bak "s/$FIND/$REPLACE/g"
+    if [[ -n "$FASTSED_BIN" ]]; then
+        printf '%s\0' "${MATCHES[@]}" | xargs -0 "$FASTSED_BIN" -E --inplace=.bak "s|$SEARCH_PATTERN|$SAFE_REPLACE|g" >/dev/null
+    else
+        printf '%s\0' "${MATCHES[@]}" | xargs -0 sed -E -i.bak "s|$SEARCH_PATTERN|$SAFE_REPLACE|g"
+    fi
     echo "Done. Backups written as *.bak"
 else
-    echo "$MATCHES" | xargs sed -i "s/$FIND/$REPLACE/g"
+    if [[ -n "$FASTSED_BIN" ]]; then
+        printf '%s\0' "${MATCHES[@]}" | xargs -0 "$FASTSED_BIN" -E --inplace=$'\x01' "s|$SEARCH_PATTERN|$SAFE_REPLACE|g" >/dev/null
+    else
+        printf '%s\0' "${MATCHES[@]}" | xargs -0 sed -E -i "s|$SEARCH_PATTERN|$SAFE_REPLACE|g"
+    fi
     echo "Done."
 fi

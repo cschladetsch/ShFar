@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>far Playground</title>
+  <style>
+    :root {
+      --bg: #f4efe4;
+      --paper: #fffaf1;
+      --panel: rgba(255, 250, 241, 0.88);
+      --ink: #1f1f1a;
+      --muted: #686250;
+      --accent: #b3472b;
+      --accent-strong: #8b2d14;
+      --line: rgba(46, 37, 20, 0.14);
+      --shadow: 0 18px 44px rgba(73, 48, 19, 0.12);
+      --mono: "Iosevka", "SFMono-Regular", "Cascadia Code", monospace;
+      --sans: "Avenir Next", "Segoe UI", sans-serif;
+      --serif: "Iowan Old Style", "Palatino Linotype", serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--sans);
+      background:
+        radial-gradient(circle at top left, rgba(179, 71, 43, 0.18), transparent 32%),
+        radial-gradient(circle at right, rgba(66, 94, 72, 0.14), transparent 28%),
+        linear-gradient(180deg, #f7f2e8 0%, #efe7d8 100%);
+    }
+
+    .shell {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.25fr 0.95fr;
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-main {
+      padding: 28px 28px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-main::after {
+      content: "";
+      position: absolute;
+      inset: auto -10% -36% auto;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: rgba(179, 71, 43, 0.08);
+      filter: blur(6px);
+    }
+
+    .kicker {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(179, 71, 43, 0.12);
+      color: var(--accent-strong);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font: 700 54px/0.98 var(--serif);
+      letter-spacing: -0.03em;
+    }
+
+    .hero-copy {
+      max-width: 58ch;
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
+    .hero-points {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      color: var(--ink);
+    }
+
+    .hero-points li::before {
+      content: ">";
+      color: var(--accent);
+      margin-right: 10px;
+      font-family: var(--mono);
+    }
+
+    .hero-side {
+      padding: 22px;
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .callout {
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent-strong);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 24px;
+    }
+
+    .panel {
+      padding: 22px;
+    }
+
+    .panel h2 {
+      margin: 0 0 8px;
+      font: 700 28px/1.05 var(--serif);
+    }
+
+    .panel p {
+      margin: 0 0 18px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px 16px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field.wide {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    input, select, button, textarea {
+      font: inherit;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 13px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--ink);
+    }
+
+    input:focus, select:focus {
+      outline: 2px solid rgba(179, 71, 43, 0.2);
+      border-color: rgba(179, 71, 43, 0.4);
+    }
+
+    .toggles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 6px 0 18px;
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.55);
+      font-size: 14px;
+      color: var(--ink);
+    }
+
+    .toggle input {
+      width: auto;
+      margin: 0;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .button {
+      border: 0;
+      border-radius: 999px;
+      padding: 13px 18px;
+      cursor: pointer;
+      transition: transform 120ms ease, background 120ms ease;
+    }
+
+    .button:hover { transform: translateY(-1px); }
+
+    .button.primary {
+      background: var(--accent);
+      color: #fff9f2;
+    }
+
+    .button.secondary {
+      background: rgba(31, 31, 26, 0.08);
+      color: var(--ink);
+    }
+
+    .button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .hint {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .command {
+      margin: 0;
+      padding: 18px;
+      border-radius: 18px;
+      background: #1d1b16;
+      color: #f6f1e7;
+      font: 500 15px/1.45 var(--mono);
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+
+    .status {
+      min-height: 20px;
+      margin-top: 12px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .status.error { color: #992f16; }
+    .status.good { color: #2f6840; }
+
+    .results {
+      display: grid;
+      gap: 18px;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .stat {
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.52);
+    }
+
+    .stat strong {
+      display: block;
+      font: 700 32px/1 var(--serif);
+      margin-bottom: 4px;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .columns {
+      display: grid;
+      grid-template-columns: 0.85fr 1.15fr;
+      gap: 18px;
+    }
+
+    .list-block, .diff-block {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.48);
+      overflow: hidden;
+    }
+
+    .block-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      font-weight: 700;
+    }
+
+    ul.file-list {
+      list-style: none;
+      margin: 0;
+      padding: 12px 16px 16px;
+      display: grid;
+      gap: 8px;
+      max-height: 320px;
+      overflow: auto;
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    .diffs {
+      padding: 16px;
+      display: grid;
+      gap: 16px;
+      max-height: 560px;
+      overflow: auto;
+    }
+
+    .diff-card {
+      border-radius: 14px;
+      background: #191713;
+      color: #f8f2e8;
+      overflow: hidden;
+    }
+
+    .diff-card header {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-family: var(--mono);
+      font-size: 13px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .diff-card pre {
+      margin: 0;
+      padding: 14px;
+      font: 500 12px/1.5 var(--mono);
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+
+    .mini-note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .grid,
+      .columns,
+      .summary {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 42px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="hero-main card">
+        <div class="kicker">far training ground</div>
+        <h1>Learn the command.<br>Leave with shell muscle memory.</h1>
+        <p class="hero-copy">
+          This page teaches <code>far</code>, not generic <code>sed</code>. Build the
+          command, preview what it would do on a safe demo folder or your own project,
+          then copy the exact shell command and run it yourself.
+        </p>
+        <ul class="hero-points">
+          <li><code>root</code> comes first</li>
+          <li><code>glob</code> narrows the file set</li>
+          <li><code>find</code> and <code>replace</code> drive the rewrite</li>
+          <li><code>-n</code> previews, <code>-b</code> keeps backups</li>
+        </ul>
+      </div>
+      <aside class="hero-side card">
+        <div class="callout">
+          <strong>Pipeline</strong>
+          <div><code>fd</code> finds filenames, <code>rg</code> filters by content, and <code>far</code> applies the replacement path.</div>
+        </div>
+        <div class="callout">
+          <strong>Default root</strong>
+          <div>The playground starts on the repo’s <code>demo/</code> folder so you can experiment safely.</div>
+        </div>
+        <div class="callout">
+          <strong>Reset demo</strong>
+          <div>After experimenting, reset the demo files with <code>git restore demo/</code>.</div>
+        </div>
+      </aside>
+    </section>
+
+    <div class="grid">
+      <section class="panel card">
+        <h2>Build the command</h2>
+        <p>Pick a preset or edit the fields directly. Preview uses real local files, but the output is intentionally sampled so the command stays the focus.</p>
+
+        <div class="form-grid">
+          <div class="field wide">
+            <label for="preset">Preset</label>
+            <select id="preset"></select>
+          </div>
+          <div class="field wide">
+            <label for="root">Root</label>
+            <input id="root" type="text" spellcheck="false">
+          </div>
+          <div class="field">
+            <label for="glob">Glob</label>
+            <input id="glob" type="text" spellcheck="false">
+          </div>
+          <div class="field">
+            <label for="find">Find</label>
+            <input id="find" type="text" spellcheck="false">
+          </div>
+          <div class="field wide">
+            <label for="replace">Replace</label>
+            <input id="replace" type="text" spellcheck="false">
+          </div>
+        </div>
+
+        <div class="toggles">
+          <label class="toggle"><input id="dry-run" type="checkbox"> include <code>-n</code></label>
+          <label class="toggle"><input id="auto-yes" type="checkbox"> include <code>-y</code></label>
+          <label class="toggle"><input id="backup" type="checkbox"> include <code>-b</code></label>
+        </div>
+
+        <div class="actions">
+          <button class="button primary" id="preview-button">Preview sample changes</button>
+          <button class="button secondary" id="copy-button">Copy command</button>
+          <span class="hint">Preview first, then take the command back to your shell.</span>
+        </div>
+
+        <div class="status" id="form-status"></div>
+      </section>
+
+      <section class="panel card">
+        <h2>Command to remember</h2>
+        <p>This is the artifact that matters. Use the page until this command shape becomes automatic.</p>
+        <pre class="command" id="command-preview"></pre>
+        <div class="mini-note">
+          Tip: when <code>-n</code> is included, you are practicing the safe preview habit you should use at the shell too.
+        </div>
+      </section>
+    </div>
+
+    <section class="panel card" style="margin-top: 24px;">
+      <h2>Preview sample</h2>
+      <p>The backend checks your real local files under the chosen root, then returns the full changed-file list plus a capped sample of diffs.</p>
+
+      <div class="results">
+        <div class="summary">
+          <div class="stat"><strong id="matched-count">0</strong><span>files matched the search pattern</span></div>
+          <div class="stat"><strong id="changed-count">0</strong><span>files would actually change</span></div>
+          <div class="stat"><strong id="sample-count">0</strong><span>sample diffs shown</span></div>
+        </div>
+
+        <div class="columns">
+          <div class="list-block">
+            <div class="block-head">Changed files</div>
+            <ul class="file-list" id="changed-files"></ul>
+          </div>
+          <div class="diff-block">
+            <div class="block-head" id="diff-head">Sampled diffs</div>
+            <div class="diffs" id="sample-diffs"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="status" id="preview-status">Load the demo root, then preview a preset.</div>
+    </section>
+  </div>
+
+  <script>
+    const state = {
+      config: null,
+      previewDirty: true,
+    };
+
+    const presetEl = document.getElementById("preset");
+    const rootEl = document.getElementById("root");
+    const globEl = document.getElementById("glob");
+    const findEl = document.getElementById("find");
+    const replaceEl = document.getElementById("replace");
+    const dryRunEl = document.getElementById("dry-run");
+    const autoYesEl = document.getElementById("auto-yes");
+    const backupEl = document.getElementById("backup");
+    const previewButton = document.getElementById("preview-button");
+    const copyButton = document.getElementById("copy-button");
+    const commandPreview = document.getElementById("command-preview");
+    const formStatus = document.getElementById("form-status");
+    const previewStatus = document.getElementById("preview-status");
+    const matchedCount = document.getElementById("matched-count");
+    const changedCount = document.getElementById("changed-count");
+    const sampleCount = document.getElementById("sample-count");
+    const changedFiles = document.getElementById("changed-files");
+    const sampleDiffs = document.getElementById("sample-diffs");
+    const diffHead = document.getElementById("diff-head");
+
+    function shellQuote(value) {
+      if (value === "") return "''";
+      return /^[A-Za-z0-9_./:{}+-]+$/.test(value) ? value : `'${value.replace(/'/g, `'\\''`)}'`;
+    }
+
+    function currentPayload() {
+      return {
+        root: rootEl.value.trim(),
+        glob: globEl.value.trim(),
+        find: findEl.value,
+        replace: replaceEl.value,
+        dry_run: dryRunEl.checked,
+        auto_yes: autoYesEl.checked,
+        backup: backupEl.checked,
+      };
+    }
+
+    function renderCommand() {
+      const payload = currentPayload();
+      const parts = ["far"];
+      if (payload.dry_run) parts.push("-n");
+      if (payload.auto_yes) parts.push("-y");
+      if (payload.backup) parts.push("-b");
+      parts.push(payload.root || "<root>");
+      parts.push(payload.glob || "*");
+      parts.push(payload.find || "<find>");
+      parts.push(payload.replace);
+      commandPreview.textContent = parts.map(shellQuote).join(" ");
+    }
+
+    function markDirty() {
+      state.previewDirty = true;
+      formStatus.textContent = "Inputs changed. Preview again before trusting the sample.";
+      formStatus.className = "status";
+      renderCommand();
+    }
+
+    function fillPreset(presetId) {
+      const preset = state.config.presets.find(item => item.id === presetId);
+      if (!preset) return;
+      globEl.value = preset.glob;
+      findEl.value = preset.find;
+      replaceEl.value = preset.replace;
+      dryRunEl.checked = Boolean(preset.dry_run);
+      autoYesEl.checked = false;
+      backupEl.checked = Boolean(preset.backup);
+      markDirty();
+    }
+
+    function setList(items) {
+      changedFiles.innerHTML = "";
+      if (!items.length) {
+        const li = document.createElement("li");
+        li.textContent = "No files would change.";
+        changedFiles.appendChild(li);
+        return;
+      }
+      for (const item of items) {
+        const li = document.createElement("li");
+        li.textContent = item;
+        changedFiles.appendChild(li);
+      }
+    }
+
+    function setDiffs(diffs, truncated) {
+      sampleDiffs.innerHTML = "";
+      if (!diffs.length) {
+        const empty = document.createElement("div");
+        empty.className = "hint";
+        empty.textContent = "No sampled diffs to show yet.";
+        sampleDiffs.appendChild(empty);
+      } else {
+        for (const entry of diffs) {
+          const card = document.createElement("article");
+          card.className = "diff-card";
+          const header = document.createElement("header");
+          header.textContent = entry.path;
+          const body = document.createElement("pre");
+          body.textContent = entry.diff;
+          card.appendChild(header);
+          card.appendChild(body);
+          sampleDiffs.appendChild(card);
+        }
+      }
+      diffHead.textContent = truncated
+        ? `Sampled diffs (first ${diffs.length}, more files changed)`
+        : "Sampled diffs";
+    }
+
+    async function loadConfig() {
+      const response = await fetch("/api/config");
+      state.config = await response.json();
+      presetEl.innerHTML = "";
+      for (const preset of state.config.presets) {
+        const option = document.createElement("option");
+        option.value = preset.id;
+        option.textContent = `${preset.label} — ${preset.description}`;
+        presetEl.appendChild(option);
+      }
+      rootEl.value = state.config.demo_root;
+      fillPreset(state.config.presets[0].id);
+      previewStatus.textContent = "The demo folder is loaded. Preview a preset or change the command.";
+    }
+
+    async function preview() {
+      previewButton.disabled = true;
+      formStatus.textContent = "Previewing local files…";
+      formStatus.className = "status";
+      previewStatus.textContent = "Checking matches and sampled diffs…";
+      try {
+        const payload = currentPayload();
+        const response = await fetch("/api/preview", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok || data.error) {
+          throw new Error(data.error || "Preview failed.");
+        }
+
+        matchedCount.textContent = String(data.matched_files.length);
+        changedCount.textContent = String(data.changed_files.length);
+        sampleCount.textContent = String(data.sample_diffs.length);
+        setList(data.changed_files);
+        setDiffs(data.sample_diffs, data.truncated);
+        commandPreview.textContent = data.command;
+        state.previewDirty = false;
+
+        if (data.changed_files.length === 0) {
+          previewStatus.textContent = "No files would change for this command.";
+        } else if (data.truncated) {
+          previewStatus.textContent = "Preview complete. Sampled diffs are capped so the command stays the focus.";
+        } else {
+          previewStatus.textContent = "Preview complete. This is the command you can run in your shell.";
+        }
+        formStatus.textContent = "Preview complete.";
+        formStatus.className = "status good";
+      } catch (error) {
+        matchedCount.textContent = "0";
+        changedCount.textContent = "0";
+        sampleCount.textContent = "0";
+        setList([]);
+        setDiffs([], false);
+        formStatus.textContent = error.message;
+        formStatus.className = "status error";
+        previewStatus.textContent = "Fix the command inputs, then preview again.";
+      } finally {
+        previewButton.disabled = false;
+      }
+    }
+
+    async function copyCommand() {
+      try {
+        await navigator.clipboard.writeText(commandPreview.textContent);
+        formStatus.textContent = "Command copied.";
+        formStatus.className = "status good";
+      } catch {
+        formStatus.textContent = "Copy failed. Select the command manually.";
+        formStatus.className = "status error";
+      }
+    }
+
+    presetEl.addEventListener("change", () => fillPreset(presetEl.value));
+    [rootEl, globEl, findEl, replaceEl, dryRunEl, autoYesEl, backupEl].forEach(el => {
+      el.addEventListener("input", markDirty);
+      el.addEventListener("change", markDirty);
+    });
+    previewButton.addEventListener("click", preview);
+    copyButton.addEventListener("click", copyCommand);
+
+    loadConfig().then(renderCommand);
+  </script>
+</body>
+</html>

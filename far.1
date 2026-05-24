@@ -16,8 +16,10 @@ uses
 .BR fd (1)
 to locate files by name glob and
 .BR rg (1)
-to filter by content, then
-.BR sed (1)
+to filter by content, then bundled
+.BR fsed (1)
+\&
+.RI ( fastsed )
 to perform the substitution.
 .SH ARGUMENTS
 .TP
@@ -32,7 +34,7 @@ Examples: \fI*.cpp\fR, \fI*.{h,cpp}\fR, \fIMakefile\fR.
 The text or basic regular expression to search for within each file.
 .TP
 .B replace
-The replacement string. Backreferences are not supported.
+The replacement string. Backreferences such as \fI\\1\fR are supported.
 .SH OPTIONS
 .TP
 .B \-y
@@ -110,20 +112,30 @@ Available at https://github.com/sharkdp/fd or via your package manager.
 ripgrep, used for fast parallel file content search.
 Available at https://github.com/BurntSushi/ripgrep or via your package manager.
 .TP
-.BR sed (1)
-Used for in-place substitution. Standard on all POSIX systems.
+.BR fsed (1)
+Bundled from CppSed and used for in-place substitution.
 .SH CAVEATS
 The
 .I find
-and
-.I replace
-arguments are passed directly to
-.BR sed (1)
-as a substitution expression. Strings containing
+pattern is matched by
+.BR rg (1)
+and substituted by
+.BR "fsed -E" ,
+so extended regular expressions are supported and replacements may use capture
+groups such as
+.BR \\\\1 .
+.PP
+Strings containing
 .B /
 or
 .B &
-must be escaped. Complex regex features (lookaheads, backreferences) are not supported.
+may need escaping depending on the pattern and replacement text.
+.PP
+For slash-heavy patterns,
+.B far
+also tolerates a leading delimiter slash, so inputs such as
+.B /\\/\\/ --\ 
+are accepted.
 .PP
 Without
 .B \-b
@@ -135,5 +147,5 @@ Written by Christian Schladetsch.
 .SH SEE ALSO
 .BR fd (1),
 .BR rg (1),
-.BR sed (1),
+.BR fsed (1),
 .BR find (1)
