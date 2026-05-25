@@ -5,6 +5,8 @@
 
 **Find and Replace across Files** -- A high-efficiency CLI tool combining the speed of [`fd`](https://github.com/sharkdp/fd), the parallel searching power of [`rg`](https://github.com/BurntSushi/ripgrep), and the high-performance in-place replacement capability of bundled C++23 [`fastsed`](https://github.com/cschladetsch/CppSed) (`fsed`).
 
+![Interactive Playground Dashboard](resources/Page1.png)
+
 ---
 
 ## 💡 The Relationship: Orchestrator vs. Engine
@@ -134,8 +136,6 @@ far -y ./docs '*.md' 'DRAFT_VERSION' 'v2.1.0'
 ## 🏫 Interactive Training Playground
 
 `far` features a local, lightweight playground to help you master multi-file substitutions safely before using the tool on live repositories.
-
-![Interactive Dashboard](resources/Page1.png)
 
 ### Launching the Dashboard
 
