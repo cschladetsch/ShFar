@@ -33,7 +33,18 @@ graph TD
 
 ---
 
-## 🛡️ Safety & Developer Experience (UX) First
+## ⚡ 2. Solving the Cross-Platform Sed Nightmare
+
+One of the most persistent pains in writing cross-platform developer workflows or CI scripts is the subtle, breaking differences between system `sed` engines:
+*   **macOS (BSD `sed`)** requires an explicit empty string argument for in-place edits without backup (e.g. `sed -i '' 's/.../.../'`), which fails syntactically on Linux.
+*   **Linux (GNU `sed`)** allows `-i` directly, but its backup extensions have different parsing rules.
+*   Regex features, capture-group syntax, and case-conversion tokens (like `\L`, `\U`) vary wildly or are completely unsupported depending on the environment.
+
+By bundling `fsed` as a native C++23 compiled engine submodule, `far` guarantees 100% identical, high-performance execution on macOS, Linux, and Windows under WSL. There is no more platform guessing, no more "works on my machine, fails in CI" surprises, and no more fragile shell shell-outs.
+
+---
+
+## 🛡️ 3. Safety & Developer Experience (UX) First
 
 With global code replacements, mistakes are costly. `far` is designed with deep safety defaults:
 *   **Interactive Confirmation by Default**: Before modifying any files, `far` stops and shows you a list of matching files, asking for your explicit approval before performing writes.
@@ -43,7 +54,7 @@ With global code replacements, mistakes are costly. `far` is designed with deep 
 
 ---
 
-## 🏫 Interactive Training Playground
+## 🏫 4. Interactive Training Playground
 
 Learning regex and backreference replacements shouldn't feel like guessing. To help developers practice safely, `far` includes a built-in training playground.
 
