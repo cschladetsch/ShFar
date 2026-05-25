@@ -1,224 +1,168 @@
-# far
+# ShFar / far
 
-**Find and replace across files** -- a CLI tool combining [`fd`](https://github.com/sharkdp/fd), [`rg`](https://github.com/BurntSushi/ripgrep), and bundled `fastsed` for targeted in-place substitution.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Dependencies](https://img.shields.io/badge/dependencies-fd%20%7C%20rg%20%7C%20fsed-brightgreen.svg)](#dependencies)
 
-```bash
-far . '*.cpp' 'OldClass' 'NewClass'
-far . '*.cpp' 'OldClass' 'NewClass' ./src
-far -n '*.h' 'TODO' 'FIXME'        # dry run
-far -y -b '*.txt' 'foo' 'bar'      # skip prompt, write backups
+**Find and Replace across Files** -- A high-efficiency CLI tool combining the speed of [`fd`](https://github.com/sharkdp/fd), the parallel searching power of [`rg`](https://github.com/BurntSushi/ripgrep), and the high-performance in-place replacement capability of bundled C++23 [`fastsed`](https://github.com/cschladetsch/CppSed) (`fsed`).
+
+---
+
+## 💡 The Relationship: Orchestrator vs. Engine
+
+Refactoring code across multiple files with standard tools (`find`, `xargs`, `sed`) can be error-prone and hard to remember. `far` solves this by wrapping the pipeline into a single, cohesive command workflow:
+
+1. **`far` (The Orchestrator)**: Wired in Bash, it manages user interaction, processes command-line flags, finds target files, prompts you for confirmation, and coordinates the execution steps.
+2. **`fsed` (The Engine)**: A native C++23 stream editor bundled as a git submodule (`CppSed`). `far` delegates the actual regex substitution to `fsed`, ensuring safe, fast, and cross-platform compatible replacements with consistent regex behavior (including capture group backreferences and case conversions).
+
+---
+
+## 🔄 How far Works (Pipeline Flow)
+
+```mermaid
+graph TD
+    A[far command] --> B{fd: Find Files by Glob}
+    B -->|Candidate list| C{rg: Filter files by Search Pattern}
+    C -->|Matching files| D[Interactive Prompt / User Confirmation]
+    D -->|Yes / -y| E[fsed: In-place C++23 Sed Engine Substitution]
+    D -->|No / Abort| F[Exit with no changes]
+    D -->|Dry Run -n| G[List matches only]
+    E -->|Optional -b| H[Write .bak Backup & Update Files]
 ```
 
-## Demo
+---
 
-Comes with a small teaching aid: a compact single-screen dashboard that shows the `far` command shape and keeps the learning flow local.
+## ⚡ Prerequisites & Installation
 
-![Demo](resources/Page1.png)
+### Core Dependencies
+Ensure the following tools are installed on your system:
 
-## Why
+| Tool | Minimum Version | Purpose | Installation |
+| :--- | :--- | :--- | :--- |
+| `fd` | v8.0+ | Fast filename glob matching | `apt install fd-find` / `brew install fd` |
+| `rg` | v13.0+ | Fast parallel file content search | `apt install ripgrep` / `brew install ripgrep` |
+| `bash` | v4.0+ | Runtime shell environment | Standard on Linux / macOS |
 
-`fd` is the modern replacement for `find` -- faster, with saner glob syntax.
-`rg` is the fastest way to find candidate files containing a string.
-`fastsed` does the actual in-place substitution, so regex and replacement
-semantics stay under one engine you control. `far` wires the pieces together
-with a confirmation step, dry-run mode, and optional backups so you don't
-shoot yourself in the foot.
+### 🛠️ Installing far
 
-## Dependencies
-
-| Tool | Purpose |
-|------|---------|
-| [`fd`](https://github.com/sharkdp/fd) | Fast filename glob matching |
-| [`rg`](https://github.com/BurntSushi/ripgrep) | Fast parallel file content search |
-| Bundled `fastsed` / `fsed` | In-place substitution |
-| `bash` | Runtime |
-
-`bash` is standard on POSIX systems. Install `fd` and `rg` via your package manager:
+To install `far` along with its C++23 replacement engine (`fsed`) submodules:
 
 ```bash
-# macOS
-brew install fd ripgrep
-
-# Debian / Ubuntu
-apt install fd-find ripgrep
-
-# Arch
-pacman -S fd ripgrep
-
-# Cargo
-cargo install fd-find ripgrep
-```
-
-## Installation
-
-```bash
+# Clone the repository
 git clone https://github.com/cschladetsch/far.git
 cd far
+
+# Initialize and pull the fastsed C++ submodule
 git submodule update --init --recursive
+
+# Run the installer (compiles fastsed, installs far + fsed binaries and man pages)
 sudo ./install.sh
 ```
 
-Custom install paths:
+*Note: The installer automatically verifies your dependencies (`fd`, `rg`), builds the bundled `CppSed` codebase, copies `fsed` and `far` to your target binary path, and updates your system manuals.*
 
-```bash
-sudo ./install.sh /usr/local/bin /usr/local/share/man/man1
-```
+---
 
-The installer will:
-- Build the bundled `CppSed` submodule
-- Install `fsed`, `far`, and both man pages
-- Check that `fd` and `rg` are present
-- Copy `far` to the bin directory
-- Update the man database
-- Warn if the bin directory is not in `PATH`
-
-## Playground
-
-The local playground is the recommended way to learn `far` argument order and
-preview a command before you run it manually in your shell.
-
-Start the local server-backed playground:
-
-```bash
-python3 playground_server.py
-```
-
-Then open `http://127.0.0.1:8765`.
-
-Or use the helper:
-
-```bash
-./teach
-```
-
-- It defaults to the repo's `demo/` folder so you can experiment safely.
-- It previews real local files, but only shows sampled diffs so the command
-  stays the main artifact.
-- It does not run writes from the browser in v1; the goal is to train you to
-  copy the command and use `far` directly in the shell.
-
-Reset the demo folder after experimenting:
-
-```bash
-git restore demo/
-```
-
-## Usage
+## 🎯 Command-Line Reference
 
 ```
 far [OPTIONS] <root> <glob> <find> <replace>
 ```
 
-### Arguments
+### Position Arguments
+| Argument | Type | Description |
+| :--- | :--- | :--- |
+| `<root>` | Directory Path | The directory path to search under (e.g. `.` for the current directory). |
+| `<glob>` | Shell Pattern | Filename glob pattern to match (e.g. `'*.cpp'`, `'*.{h,hpp}'`, or `'*.py'`). |
+| `<find>` | Regular Expression | The text pattern or regular expression to search for. |
+| `<replace>`| Substitution String | The replacement string (supports backreferences like `\1` and case conversions). |
 
-| Argument | Description |
-|----------|-------------|
-| `root` | Directory to search under (use `.` for current directory) |
-| `glob` | Filename glob pattern, e.g. `*.cpp` |
-| `find` | Text or regex to search for |
-| `replace` | Replacement string |
+### Flags & Options
+| Flag | Name | Description |
+| :--- | :--- | :--- |
+| `-y` | Non-Interactive | Skips the confirmation prompt and applies substitutions immediately. |
+| `-n` | Dry Run | Performs a preview pass: lists matching files and target lines without editing. |
+| `-b` | Create Backups | Automatically creates a `<filename>.bak` backup file before modifying any file. |
+| `-h` | Help | Displays help and usage guidelines. |
 
-### Options
+### Exit Status Codes
+*   `0`: Success (changes applied or dry run executed successfully).
+*   `1`: Invalid command arguments.
+*   `2`: No matching files were found containing the search pattern.
+*   `3`: Modification aborted by user at the confirmation prompt.
 
-| Flag | Description |
-|------|-------------|
-| `-y` | Skip the confirmation prompt |
-| `-n` | Dry run -- list matching files, make no changes |
-| `-b` | Write `.bak` backups before modifying |
-| `-h` | Show help |
+---
 
-### Exit codes
+## 📚 Categorized Examples
 
-| Code | Meaning |
-|------|---------|
-| `0` | Success |
-| `1` | Invalid arguments |
-| `2` | No matching files found |
-| `3` | User aborted at confirmation prompt |
-
-## Examples
-
-**Rename a class across all C++ source files:**
-
+### 1. Basic Replacements
 ```bash
+# Rename a class across all C++ source files (will prompt before writing)
 far . '*.cpp' 'OldClass' 'NewClass'
-```
 
-**Restrict to a subdirectory:**
-
-```bash
+# Restrict replacement scope to a specific subfolder
 far . '*.cpp' 'OldClass' 'NewClass' ./src
 ```
 
-**Preview without modifying anything:**
-
+### 2. Safe Experimentation & Dry Runs
 ```bash
-far -n . '*.h' 'OldClass' 'NewClass'
+# Dry run: view what files contain 'TODO' and would change to 'FIXME'
+far -n . '*.h' 'TODO' 'FIXME'
+
+# Perform in-place updates immediately, but preserve original backups
+far -y -b . '*.txt' 'temporary_key' 'permanent_key'
 ```
 
-**Apply immediately with no prompt, keeping backups:**
+### 3. Advanced Regex & Capture Groups
+Because `far` utilizes the modern C++23 `fsed` engine under the hood, you can leverage advanced regex features, capture groups, and case-modification flags:
 
 ```bash
-far -y -b . '*.cpp' 'OldClass' 'NewClass'
-```
-
-**Bump a version string across all Markdown docs:**
-
-```bash
-far -y ./docs '*.md' 'v1.0.0' 'v1.1.0'
-```
-
-**Replace a deprecated API call across all headers and sources:**
-
-```bash
-far . '*.{h,cpp}' 'GetValue()' 'getValue()'
-```
-
-**Normalize banner comments with a capture group:**
-
-```bash
+# Reformat comments while keeping dynamic content using capture groups (\1)
 far . '*.{cpp,h}' '// -- (.*) -+$' '// \1'
+
+# Swap argument order and convert variable names to uppercase (\U...\E)
+far . '*.py' 'load_config\(([^,]+),\s*([^)]+)\)' 'load_config(\U\2\E, \1)'
 ```
 
-**Fix a misspelled identifier across Python files:**
-
+### 4. Automation & CI Pipelines
 ```bash
-far . '*.py' 'recieve' 'receive'
+# Non-interactive string replacement for release deployment
+far -y ./docs '*.md' 'DRAFT_VERSION' 'v2.1.0'
 ```
 
-**Update a changed environment variable name across shell scripts:**
+---
 
+## 🏫 Interactive Training Playground
+
+`far` features a local, lightweight playground to help you master multi-file substitutions safely before using the tool on live repositories.
+
+![Interactive Dashboard](resources/Page1.png)
+
+### Launching the Dashboard
+
+Run the playground local server from the repository root:
 ```bash
-far ./scripts '*.sh' 'APP_ROOT' 'APP_BASE_DIR'
+# Using Python directly
+python3 playground_server.py
+
+# Or run the native teacher helper script
+./teach
 ```
 
-**Rename a CMake target across build files:**
+Then open your browser and navigate to: **`http://127.0.0.1:8765`**
 
-```bash
-far . 'CMakeLists.txt' 'mylib_static' 'mylib'
-```
+### Playground Rules
+*   **Sandbox Safety**: It is pre-configured to point to the repository's `demo/` folder, allowing you to test complex glob patterns and regex operations safely.
+*   **Safe Exploration**: It parses and previews matches and substitutions in real-time but does *not* write to the filesystem directly from the browser, teaching you the command syntax to run in your shell.
+*   **Reset Sandbox**: If you ever want to reset the playground files back to their default state:
+    ```bash
+    git restore demo/
+    ```
 
-**Use in a CI pipeline (non-interactive, fails loudly on no match):**
+---
 
-```bash
-far -y ./docs '*.md' 'UNRELEASED' '2.0.0'
-```
-
-## Caveats
-
-- `fd` is used for filename glob matching; `rg` is used for content search. Both must be in `PATH`.
-- `find` is matched by `rg`, and replacement is performed by bundled `fastsed` (`fsed`) using extended regex syntax and replacements like `\1`.
-- Strings containing `/` or `&` may need escaping depending on your pattern and replacement.
-- For slash-heavy patterns, `far` also tolerates a leading delimiter slash, so forms like `'/\\/\\/ -- '` work.
-- Without `-b` there is no undo. Use `-n` first when in doubt.
-- `rg` respects `.gitignore` by default, so files excluded from version control are skipped.
-
-## Man page
-
+## 📄 Manual Reference
+To access full manual guidelines directly from your terminal:
 ```bash
 man far
+man fsed
 ```
-
-## License
-
-MIT -- see [LICENSE](LICENSE).

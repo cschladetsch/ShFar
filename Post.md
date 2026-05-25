@@ -1,56 +1,64 @@
-# `far`
+# Building `far`: Bringing IDE-Grade Find & Replace to the Terminal
 
-I’ve been building `far`.
-It is the shell version of the old IDE “find and replace across files” thing I kept missing.
-That operation mattered more than people admit.
-You point it at a tree, narrow the files, preview the shape of the change, and then let it go.
-That is a real workflow, not a pile of one-off shell glue.
+We've all been there: you need to rename a class, refactor an API, or update configuration values across dozens of files. 
 
-You can glue it together with `find`, `xargs`, and `sed`.
-That is not the same thing.
-I wanted one command.
-One command I could type without rebuilding the pipeline in my head every time.
-
-So `far` is deliberately narrow:
-- `fd` finds candidate files
-- `rg` filters by content
-- [`fsed`](https://github.com/cschladetsch/CppSed) does the replacement
-
-`fsed` is not a footnote.
-It is a faster `sed(1)`-style engine in C++23.
-Bundling it means one replacement engine, one regex/rewrite model, one thing to document.
-That also means fewer weird backend differences and fewer “works here, breaks there” surprises.
-
+Traditionally, this meant constructing a brittle, scary shell pipeline:
 ```bash
-far [OPTIONS] <root> <glob> <find> <replace>
+find . -name "*.cpp" -print0 | xargs -0 sed -i 's/OldClass/NewClass/g'
 ```
 
-That is the whole shape.
-Root first. Then the glob. Then the find string. Then the replacement.
-If you know those four parts, you know the tool.
+If you make a single typo or miscalculate the regex syntax, this one-liner can quietly corrupt your entire project directory. Standard `sed` behaves differently on macOS and Linux, backup flag syntax varies, and there is no way to preview the changes safely.
 
-Recent work:
-- bundled `fsed` instead of relying on system `sed`
-- improved capture-group and backreference-friendly replacements
-- added a local training playground and demo folder so the workflow can be learned before it hits a real repo
-- kept the command shape simple enough that it is actually worth memorizing
-- made the playground look like a compact single-screen dashboard instead of a bloated demo page
-- kept the repo small enough that the toolchain is still understandable
+I wanted something better. I wanted a single, fast, safe command that feels like the classic IDE "Find and Replace across Files" dialog, but runs natively in the terminal.
 
-The goal is straightforward:
-make multi-file refactors fast enough to use, safe enough to trust, and simple enough to remember.
-That is the point.
-Not “clever shell incantation.”
-Not “cargo cult one-liner.”
-Just a usable command for the thing people already know they want.
+So, I built [far](https://github.com/cschladetsch/ShFar).
 
-In practice, `far` is the workflow and `fsed` is the engine underneath it.
-That’s the whole thing.
-`far` gets you to the right files.
-`fsed` makes the edit path fast enough that you do not hate using it.
-The playground exists because if people have to learn the shape once, they should not have to guess at it again.
+---
 
-If I attach one image, it is this:
-https://raw.githubusercontent.com/cschladetsch/ShFar/master/resources/Page1.png
+## 🛠️ The Architecture: An Elegant Orchestrator
 
-Repo: https://github.com/cschladetsch/ShFar
+`far` does not try to reinvent the wheel. Instead, it acts as a lightweight orchestrator that wires together three best-in-class tools:
+
+1. **`fd` (File Discovery)**: The modern replacement for `find`. It scans your project directory using a simple glob syntax and extreme parallel speed.
+2. **`rg` (Ripgrep - Filtering)**: The fastest pattern search engine in existence. It filters the files discovered by `fd` to only target files containing the specific search pattern.
+3. **`fsed` (The Engine)**: A native, high-performance C++23 stream editor bundled as a git submodule ([CppSed](https://github.com/cschladetsch/CppSed)). Using a custom-built stream engine ensures that regex features, capture-group backreferences, and case conversions remain 100% consistent across operating systems.
+
+```mermaid
+graph TD
+    A[far command] --> B{fd: Glob matching}
+    B -->|Finds candidate files| C{rg: Content filtering}
+    C -->|Identifies target files| D[Interactive Prompt]
+    D -->|User approves| E[fsed: Safe in-place rewrites]
+```
+
+---
+
+## 🛡️ Safety & Developer Experience (UX) First
+
+With global code replacements, mistakes are costly. `far` is designed with deep safety defaults:
+*   **Interactive Confirmation by Default**: Before modifying any files, `far` stops and shows you a list of matching files, asking for your explicit approval before performing writes.
+*   **Dry Runs (`-n`)**: Run a search and view matching lines and paths safely without writing a single byte.
+*   **Automatic Backups (`-b`)**: Automatically generates `<filename>.bak` copies of your files before editing, giving you a clear safety net.
+*   **CI-Pipeline Ready (`-y`)**: Skip prompts programmatically for automation scripts while ensuring that if no files match, the command exits with a clean, descriptive error code instead of silently failing.
+
+---
+
+## 🏫 Interactive Training Playground
+
+Learning regex and backreference replacements shouldn't feel like guessing. To help developers practice safely, `far` includes a built-in training playground.
+
+Running `./teach` or `python3 playground_server.py` boots up a compact, single-screen dashboard local server at `http://127.0.0.1:8765`.
+
+![Playground Dashboard](resources/Page1.png)
+
+*   **Interactive Testing**: Type in your glob patterns and replacement expressions, and see immediately which files in the repository's `demo/` folder are affected and what the resulting lines look like.
+*   **Safe Playground**: The dashboard is strictly read-only for file updates, training you in the command-line syntax so you can run it confidently in your actual shell.
+*   **Easy Reset**: Messed up the sandbox? Simply run `git restore demo/` to start fresh.
+
+---
+
+## 🎯 Wrap Up
+
+`far` proves that powerful refactoring tools don't have to be bloated or complex. By chaining `fd`, `rg`, and our C++23 `fsed` engine under a safe, intuitive Bash interface, we turn a stressful shell incantation into a reliable, single-word tool you can use every single day.
+
+*Explore the syntax and command examples in [README.md](README.md) or launch the training dashboard to try it out!*
